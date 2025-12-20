@@ -1,0 +1,11 @@
+.env
+astas.py
+.cache
+__pycache__
+output
+docs_generator.py
+venv
+output123.json
+mini_project
+as.py
+output/json/output123.json
