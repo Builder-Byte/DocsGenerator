@@ -52,7 +52,8 @@ This repository contains a collection of Python scripts and modules designed to 
 ## Installation
 1. Clone the repository:
    ```bash
-   https://github.com/Builder-Byte/DocsGenerator```
+   git clone https://github.com/Builder-Byte/DocsGenerator
+   ```
 2. Navigate to the project directory:
    ```bash
    cd DocsGenerator
@@ -77,6 +78,3 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-## Contact
-For any inquiries, please contact [your email].
