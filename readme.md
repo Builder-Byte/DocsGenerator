@@ -1,4 +1,4 @@
-# Summarizer Prerequisite Projects
+# DocsGenerator
 
 ## Overview
 This repository contains a collection of Python scripts and modules designed to summarize and analyze code files. The project leverages tools like AST parsing, dependency generation, and integration with OpenAI's API for summarization.
