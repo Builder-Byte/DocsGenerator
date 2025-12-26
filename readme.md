@@ -17,21 +17,6 @@ This repository contains a collection of Python scripts and modules designed to 
 - **Markdown Generation**: Converts extracted metadata into well-structured Markdown documentation.
 - **File System Operations**: Includes utilities for reading, writing, and organizing files efficiently.
 
-
-## Project Structure
-```
-├── dependency_generator.py
-├── docs_creator.py
-├── file_explorer_cli.py
-├── gemini_client.py
-├── main.py
-├── openrouter_client.py
-├── output/
-│   ├── json/
-│   ├── md/
-│   ├── output.txt.txt
-```
-
 ## Installation
 1. Clone the repository:
    ```bash
@@ -39,7 +24,7 @@ This repository contains a collection of Python scripts and modules designed to 
    ```
 2. Navigate to the project directory:
    ```bash
-   cd DocsGenerator
+   cd DocsGenerator/backend
    ```
 3. Set up a virtual environment:
    ```bash
@@ -50,6 +35,15 @@ This repository contains a collection of Python scripts and modules designed to 
    ```bash
    pip install -r requirement.txt
    ```
+5. Navigate to frontend:
+   ``` bash
+   cd ../frontend
+   ```
+6. Install the dependency:
+   ``` bash
+   npm install
+   ```
+
 
 ## Usage
 #### For CLI usage:
@@ -65,8 +59,12 @@ This repository contains a collection of Python scripts and modules designed to 
 #### For Server usage:
 1. Run the backend server:
    ```bash
-   fastapi dev server.py
+   fastapi dev backend/server.py
    ```
+2. Run the frontend server:
+   ``` bash
+   npm run dev
+   ```   
 
 ## Contributing
 Contributions are welcome! Please fork the repository and submit a pull request.
