@@ -52,13 +52,18 @@ This repository contains a collection of Python scripts and modules designed to 
    ```
 
 ## Usage
-1. Run the main script for cli usage:
+#### For CLI usage:
+
+1. Specify the folder to summarize in the `summarize.py` file.
+2. Run the main script for cli usage:
    ```bash
    python summarize.py
    ```
-2. Specify the folder to summarize in the `main.py` file.
+   manually define the folder names inside first
 3. Outputs will be generated in the `output` directory.
-4. Run the main server:
+
+#### For Server usage:
+1. Run the backend server:
    ```bash
    fastapi dev server.py
    ```
