@@ -13,7 +13,9 @@ class FileExplorer:
     def write_to_files(self, content, output_file):
         if type(content) != str:
             content = str(content)  
-        output_file = os.path.join(self.root_dir, output_file)
+        # Only join with root_dir if output_file is not an absolute path
+        if not os.path.isabs(output_file):
+            output_file = os.path.join(self.root_dir, output_file)
         parent_dir = os.path.dirname(output_file)
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)

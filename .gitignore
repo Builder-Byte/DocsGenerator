@@ -8,3 +8,6 @@ venv
 output123.json
 as.py
 output/json/output123.json
+*.zip
+extracted 
+uploads 

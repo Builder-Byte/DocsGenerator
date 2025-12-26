@@ -26,23 +26,6 @@ This repository contains a collection of Python scripts and modules designed to 
 ├── gemini_client.py
 ├── main.py
 ├── openrouter_client.py
-├── mini_project/
-│   ├── main.py
-│   ├── common/
-│   │   ├── __init__.py
-│   │   ├── logger.py
-│   ├── data/
-│   │   ├── __init__.py
-│   │   ├── loader.py
-│   │   ├── parser.py
-│   ├── dependency_generator/
-│   │   ├── mini_project/
-│   │   │   ├── output.txt
-│   │   │   ├── read.txt
-│   ├── utils/
-│       ├── __init__.py
-│       ├── helper.py
-│       ├── math_ops.py
 ├── output/
 │   ├── json/
 │   ├── md/
@@ -63,15 +46,22 @@ This repository contains a collection of Python scripts and modules designed to 
    python3 -m venv venv
    source venv/bin/activate
    ```
+4. Install the requirements:
+   ```bash
+   pip install -r requirement.txt
+   ```
 
 ## Usage
-1. Run the main script:
+1. Run the main script for cli usage:
    ```bash
-   python main.py
+   python summarize.py
    ```
 2. Specify the folder to summarize in the `main.py` file.
 3. Outputs will be generated in the `output` directory.
-
+4. Run the main server:
+   ```bash
+   fastapi dev server.py
+   ```
 
 ## Contributing
 Contributions are welcome! Please fork the repository and submit a pull request.
