@@ -25,7 +25,7 @@ class Summarize():
         
         
         for a in t.keys():
-            if index >2:
+            if index >1:
                 return 
             out = DependencyGenerator().summarize_file(t[a])
             out['file_name'] = a

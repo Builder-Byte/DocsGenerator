@@ -11,3 +11,5 @@ output/json/output123.json
 *.zip
 extracted 
 uploads 
+output_zip
+src

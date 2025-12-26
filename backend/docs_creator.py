@@ -81,3 +81,4 @@ class DocsCreator:
             else:
                 md_file.write("No constants found.\n")
             md_file.write("\n")
+            md_file.write("####This file is AI generated.")

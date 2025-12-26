@@ -10,7 +10,7 @@ class OpenRouterClient:
     model="mistralai/mistral-nemo",
     messages=[
       { 'role': 'system', 
-              'content': '''You are a Senior Software Engineer and Technical Writer with experience documenting enterprise-grade systems.
+        'content': '''You are a Senior Software Engineer and Technical Writer with experience documenting enterprise-grade systems.
 Your task is to generate clear, professional, industry-standard documentation for the provided source code.
 
 Input
@@ -92,6 +92,10 @@ Use Markdown formatting
 Include code snippets where helpful
 
 Do not restate the code line-by-line unless necessary
+
+Mention the file from where imports are being utilised 
+example: from file_explorer_cli import filexplorer
+output: the class filexplorer and its related functions are imported from file_explorer_cli file
 
 Output Format
 

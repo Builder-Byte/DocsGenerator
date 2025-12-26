@@ -4,27 +4,29 @@ import zipfile
 import shutil
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import FileResponse
 from summarize import Summarize
 app = FastAPI()
 
 UPLOAD_DIR = "uploads"
 EXTRACT_DIR = "extracted"
+OUTPUT_ZIP_DIR = os.path.join(os.getcwd(), "output", "zip")
 
 # Ensure directories exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(EXTRACT_DIR, exist_ok=True)
+os.makedirs(OUTPUT_ZIP_DIR, exist_ok=True)
 
 def summarizer(folder_to_be_summarized: str,name:str):
     Summarize(folder_to_be_summarized, name).summarize()
     
-def zip_folder(name: str):
+def zip_folder(name: str) -> str:
     folder_path = os.path.join(os.getcwd(), "output", name)
-    output_zip_dir = os.path.join(os.getcwd(), "output_zip")
-    os.makedirs(output_zip_dir, exist_ok=True)
-    zip_name = os.path.join(output_zip_dir, name)
+    zip_name = os.path.join(OUTPUT_ZIP_DIR, name)
     print(f"Zipping folder {folder_path}")
     shutil.make_archive(zip_name, 'zip', folder_path)
     print(f"Zipped folder to {zip_name}.zip")
+    return f"{zip_name}.zip"
     
 
 @app.get("/")
@@ -32,9 +34,19 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/download/{name}")
+async def download_zip(name: str):
+    """
+    Download the generated ZIP file by name.
+    """
+    zip_path = os.path.join(OUTPUT_ZIP_DIR, f"{name}.zip")
+    if not os.path.exists(zip_path):
+        raise HTTPException(status_code=404, detail=f"ZIP file '{name}.zip' not found.")
+    return FileResponse(
+        path=zip_path,
+        filename=f"{name}.zip",
+        media_type="application/zip"
+    )
 
 
 @app.post("/upload")
