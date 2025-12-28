@@ -1,0 +1,50 @@
+.
+├── backend
+│   ├── dependency_generator.py
+│   ├── docs
+│   │   ├── json
+│   │   │   ├── dependency_generator.py.json
+│   │   │   ├── docs_creator.py.json
+│   │   │   ├── file_explorer_cli.py.json
+│   │   │   ├── gemini_client.py.json
+│   │   │   ├── openrouter_client.py.json
+│   │   │   ├── server.py.json
+│   │   │   └── summarize.py.json
+│   │   └── md
+│   │       ├── dependency_generator.py.md
+│   │       ├── docs_creator.py.md
+│   │       ├── file_explorer_cli.py.md
+│   │       ├── gemini_client.py.md
+│   │       ├── openrouter_client.py.md
+│   │       ├── server.py.md
+│   │       └── summarize.py.md
+│   ├── docs_creator.py
+│   ├── file_explorer_cli.py
+│   ├── gemini_client.py
+│   ├── mini_project.zip
+│   ├── openrouter_client.py
+│   ├── requirement.txt
+│   ├── server.py
+│   └── summarize.py
+├── frontend
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public
+│   │   └── vite.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   └── main.tsx
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── readme.md
+
+
+9 directories, 42 files
