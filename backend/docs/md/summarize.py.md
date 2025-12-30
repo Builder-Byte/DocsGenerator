@@ -1,185 +1,228 @@
 # File Name
 
-summarize.py
+`summarize.py`
 
 # Summary
 
-# Summarize.py Documentation
+# Summarize Code Documentation
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Purpose](#purpose)
-3. [High-level Responsibilities](#responsibilities)
-4. [Intended Use Cases](#use-cases)
-5. [Architecture & Design](#architecture)
-6. [Key Design Patterns](#design-patterns)
-7. [Dependencies](#dependencies)
-8. [Public Interfaces](#public-interfaces)
-9. [Internal Logic](#internal-logic)
-10. [Configuration & Environment](#configuration)
-11. [Usage Examples](#usage-examples)
-12. [Edge Cases & Constraints](#edge-cases)
-13. [Best Practices & Notes](#best-practices)
+2. [Architecture & Design](#architecture--design)
+3. [Public Interfaces](#public-interfaces)
+4. [Internal Logic](#internal-logic)
+5. [Configuration & Environment](#configuration--environment)
+6. [Usage Examples](#usage-examples)
+7. [Edge Cases & Constraints](#edge-cases--constraints)
+8. [Best Practices & Notes](#best-practices--notes)
 
 ## Overview
 
-The `Summarize` class is responsible for summarizing files within a specified folder using the OpenRouter API. It reads files, generates file dependencies, and creates JSON and Markdown summaries for each file.
-
-## Purpose of the File/Module
-
-The purpose of this file is to provide a high-level interface for summarizing files within a given folder using the OpenRouter API. It encapsulates the file reading, dependency generation, summarization, and output creation processes.
-
-## High-level Responsibilities
-
-- Read files from a specified folder.
-- Generate file dependencies using `DependencyGenerator`.
-- Summarize files using the OpenRouter API.
-- Create JSON and Markdown summaries for each file.
-- Handle API errors and retries.
-
-## Intended Use Cases
-
-This class is intended to be used as a high-level interface for summarizing files within a project folder. It can be used for generating project documentation, understanding file dependencies, or extracting relevant information from files.
+The `Summarize` class is the main entry point for generating AI summaries and Markdown documentation for all code files in a specified project folder. It reads all files, analyzes their code structure, generates AI summaries using an OpenRouter client, and creates both Markdown and JSON documentation.
 
 ## Architecture & Design
 
-The `Summarize` class follows a simple, single-responsibility principle. It encapsulates the file summarization process and interacts with other classes like `FileExplorer`, `DependencyGenerator`, and `OpenRouterClient` to achieve its goals.
+The `Summarize` class follows a simple yet effective architecture with the following key components:
 
-### Key Design Patterns
+- **DependencyGenerator**: Responsible for analyzing code files and extracting relevant information such as imports, functions, classes, etc.
+- **OpenRouterClient**: Handles communication with the OpenRouter API to generate AI summaries of the code.
+- **DocsCreator**: Converts the generated analysis and summary data into Markdown and JSON formats.
 
-- **Single Responsibility Principle**: The `Summarize` class has a single responsibility, which is to summarize files within a given folder.
-- **Dependency Injection**: The `Summarize` class uses dependency injection to provide the `FileExplorer` instance with the required folder path and ignore folders.
-
-### Important Abstractions
-
-- `FileExplorer`: An abstraction for exploring and reading files from a folder.
-- `DependencyGenerator`: An abstraction for generating file dependencies.
-- `OpenRouterClient`: An abstraction for interacting with the OpenRouter API.
-
-## Dependencies and Integrations
-
-- `file_explorer_cli`: For file exploration and reading.
-- `dependency_generator`: For generating file dependencies.
-- `openrouter_client`: For interacting with the OpenRouter API.
-- `docs_creator`: For converting JSON summaries to Markdown.
-- `gemini_client` (optional): For file summarization using Gemini API (not used in this implementation).
+The class uses a shared processing status dictionary (`processing_status`) to update progress across multiple instances or users. It also employs a unique session ID for multi-user support and output folder isolation.
 
 ## Public Interfaces
 
 ### `Summarize`
 
-- **Constructor**
-  - `folder_to_summarize` (str): The folder path to summarize files from.
-  - `output_folder` (str): The output folder for JSON and Markdown summaries.
+**Signature**: `Summarize(folder_to_summarize: str, output_folder: str, session_id: Optional[str] = None, processing_status: Optional[Dict] = None, output_base_dir: Optional[str] = None)`
 
-- **Methods**
-  - `summarize()`: Initiates the file summarization process.
+**Parameters**:
 
-### `FileExplorer`
+- `folder_to_summarize` (str): Path to the folder containing source code.
+- `output_folder` (str): Name of the output folder for generated docs.
+- `session_id` (Optional[str]): Optional unique session identifier for multi-user support.
+- `processing_status` (Optional[Dict]): Optional reference to shared status dict for progress updates.
+- `output_base_dir` (Optional[str]): Optional base directory for output files.
 
-- **Constructor**
-  - `root_dir` (str): The root directory to explore.
-  - `ignore_folders` (set): A set of folder names to ignore.
+**Returns**: None
 
-- **Methods**
-  - `readFiles()`: Reads files from the specified folder and returns a dictionary of file paths and content.
+**Description**: Initializes the `Summarize` class and sets up the output folder structure.
 
-### `DependencyGenerator`
+### `summarize`
 
-- **Methods**
-  - `summarize_file(file_content)`: Generates a summary of the given file content.
+**Signature**: `summarize(self) -> None`
 
-### `OpenRouterClient`
+**Parameters**: None
 
-- **Methods**
-  - `summarize(file_path)`: Summarizes the given file using the OpenRouter API.
+**Returns**: None
 
-### `DocsCreator`
+**Description**: Processes all files in the project and generates documentation. It reads all project files, analyzes their code structure, generates AI summaries, and creates Markdown and JSON documentation.
 
-- **Methods**
-  - `json_to_markdown(json_data, output_file)`: Converts the given JSON data to Markdown and writes it to the specified output file.
+### `_update_progress`
+
+**Signature**: `_update_progress(self, current: int, total: int, current_file: str) -> None`
+
+**Parameters**:
+
+- `current` (int): Current file being processed.
+- `total` (int): Total number of files in the project.
+- `current_file` (str): Path to the current file being processed.
+
+**Returns**: None
+
+**Description**: Updates progress in the shared processing status dictionary.
 
 ## Internal Logic
 
-The `summarize` method is the core of the `Summarize` class. It follows these steps:
+The `summarize` method follows these critical workflows:
 
-1. Reads files from the specified folder using `FileExplorer`.
-2. Loops through the files, generating dependencies and summarizing each file using the OpenRouter API.
-3. Creates JSON and Markdown summaries for each file using `DocsCreator`.
-4. Handles API errors and retries using a simple exponential backoff strategy.
+1. Reads all project files using the `FileExplorer` class.
+2. Initializes the `OpenRouterClient`, `DependencyGenerator`, and `DocsCreator` instances.
+3. Loops through each file, updating progress and performing the following steps:
+   a. Generates code analysis using the `DependencyGenerator`.
+   b. Generates an AI summary using the `OpenRouterClient` with retry logic.
+   c. Creates safe filenames for output and generates documentation using the `DocsCreator`.
 
-### Non-obvious Implementation Decisions
-
-- The use of a simple exponential backoff strategy for handling API errors and retries.
-- The use of `try-except` blocks to handle the optional `GeminiClient` import.
+The `_update_progress` method updates the progress in the shared processing status dictionary, allowing for real-time progress tracking.
 
 ## Configuration & Environment
 
-- The `output_folder` environment variable can be used to specify the output folder for JSON and Markdown summaries.
-- The `folder_to_summarize` environment variable can be used to specify the folder path to summarize files from.
+### Required environment variables
+
+None
+
+### Configuration options
+
+- `folder_to_summarize`: Path to the folder containing source code.
+- `output_folder`: Name of the output folder for generated docs.
+- `session_id`: Optional unique session identifier for multi-user support.
+- `processing_status`: Optional reference to shared status dict for progress updates.
+- `output_base_dir`: Optional base directory for output files.
+
+### External services or resources used
+
+- OpenRouter API: Used to generate AI summaries of the code.
 
 ## Usage Examples
 
+1. Initialize and run the `Summarize` class with a project folder and output folder:
+
 ```python
-# Summarize files within the 'mini_project' folder
-Summarize('mini_project', 'output_folder_name').summarize()
+Summarize('mini_project', 'docs_output').summarize()
+```
+
+2. To use a custom session ID and output base directory:
+
+```python
+Summarize('mini_project', 'docs_output', session_id='my_session', output_base_dir='/path/to/output').summarize()
 ```
 
 ## Edge Cases & Constraints
 
-- **Limitations**: The `Summarize` class assumes that the input folder contains only text files. It may not work correctly with binary files or files with special characters in their names.
-- **Assumptions**: The `Summarize` class assumes that the OpenRouter API is available and stable. It does not handle API rate limits or other API-specific errors.
-- **Performance considerations**: The `Summarize` class may take a significant amount of time to process large folders or files. It is recommended to use this class in a non-interactive environment.
+### Limitations
+
+- The `OpenRouterClient` might have rate limits or availability issues, which could affect the summary generation process.
+- Large projects with many files might experience slower processing times or memory constraints.
+
+### Assumptions
+
+- The project folder contains only Python files.
+- The `OpenRouterClient` is available and functioning correctly.
+
+### Performance considerations
+
+- Processing large projects might take considerable time, depending on the number of files and the OpenRouter API's response time.
 
 ## Best Practices & Notes
 
-- **Security considerations**: The `Summarize` class does not handle sensitive data. If the files being summarized contain sensitive information, it is the responsibility of the caller to ensure that this information is handled appropriately.
-- **Maintainability tips**: The `Summarize` class is designed to be easily extensible. To add support for new APIs or file types, simply create a new class that implements the required interface and update the `Summarize` class to use it.
-- **Extension points**: The `Summarize` class can be extended to support new APIs or file types by creating new classes that implement the `FileExplorer`, `DependencyGenerator`, and `OpenRouterClient` interfaces.
+### Security considerations
 
-## Style Guidelines
+- Ensure that the OpenRouter API key is kept secure and not exposed in the code or configuration.
+- Be mindful of rate limits and API usage costs when using external services like OpenRouter.
 
-- Follow PEP 8 style guidelines for Python code.
-- Use clear, concise, and professional language in comments and docstrings.
-- Use Markdown formatting for documentation, following industry standards similar to Google or Microsoft style guides.
-- Include code snippets where helpful, but avoid restating the code line-by-line unless necessary.
+### Maintainability tips
+
+- Keep the `Summarize` class and its dependencies well-documented and organized for easy maintenance and updates.
+- Regularly review and update the `ignore_folders` list in the `FileExplorer` initialization to exclude unnecessary folders from processing.
+
+### Extension points
+
+- The `Summarize` class can be extended to support additional file types or analysis tools by modifying the `DependencyGenerator` and `DocsCreator` classes.
+- Custom progress tracking or reporting can be implemented by overriding or extending the `_update_progress` method.
 
 ## Imports
 
 This script imports the following modules:
+
 - `file_explorer_cli.FileExplorer`
+  - **Available functions:** clear_file, write_to_files, write_to_json, write_to_md, readFiles, print_folder_not_found, getFiles, detect_language, get_manifest, __init__
+  - **Source:** `file_explorer_cli.py`
 - `dependency_generator.DependencyGenerator`
+  - **Available functions:** _safe_parse, generateGraph, extract_imports, extract_functions, extract_classes, extract_docstrings, extract_type_hints, extract_top_level_constants, extract_todos, analyze_cross_library_imports, summarize_file, __init__, add_node
+  - **Source:** `dependency_generator.py`
 - `openrouter_client.OpenRouterClient`
+  - **Available functions:** summarize, __init__
+  - **Source:** `openrouter_client.py`
 - `docs_creator.DocsCreator`
+  - **Available functions:** __init__, ensure_output_directory, json_to_markdown
+  - **Source:** `docs_creator.py`
 - `time`
 - `shutil`
 - `os`
-- `gemini_client.GeminiClient`
+- `uuid`
+- `typing.Dict`
+- `typing.Optional`
 
 ## Functions
 
-### summarize()
+### `summarize()`
 
-- **Arguments:** self
-- **Returns:** None
-- **Description:** None
+- **Arguments:** `self`
+- **Returns:** `None`
+- **Description:** Process all files in the project and generate documentation.
 
-### __init__()
+For each file:
+1. Extract code structure (imports, functions, classes, etc.)
+2. Perform cross-library analysis to link imports to source files
+3. Generate AI summary of the code
+4. Create Markdown and JSON documentation
 
-- **Arguments:** self, folder_to_summarize, ouptut_folder
-- **Returns:** None
-- **Description:** None
+### `_update_progress()`
+
+- **Arguments:** `self, current, total, current_file`
+- **Returns:** `None`
+- **Description:** Update progress in the shared processing_status dict.
+
+### `__init__()`
+
+- **Arguments:** `self, folder_to_summarize, output_folder, session_id, processing_status, output_base_dir`
+- **Returns:** `None`
+- **Description:** Initialize the Summarize class.
+
+Args:
+    folder_to_summarize: Path to the folder containing source code
+    output_folder: Name of the output folder for generated docs
+    session_id: Optional unique session identifier for multi-user support
+    processing_status: Optional reference to shared status dict for progress updates
+    output_base_dir: Optional base directory for output files
 
 
 ## Classes
 
-### Summarize
+### `Summarize`
 
-- **Description:** None
+- **Methods:** `summarize, _update_progress, __init__`
+- **Description:** Main class for summarizing code files in a project.
+
+Reads all files from a folder, analyzes them using DependencyGenerator,
+generates AI summaries, and creates Markdown documentation.
 
 
 ## Constants
 
 No constants found.
 
+---
+
+*This documentation was generated automatically by DocsGenerator.*

@@ -1,6 +1,6 @@
 # File Name
 
-server.py
+`server.py`
 
 # Summary
 
@@ -9,156 +9,222 @@ server.py
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Architecture & Design](#architecture--design)
+2. [Architecture & Design](#architecture-design)
 3. [Public Interfaces](#public-interfaces)
 4. [Internal Logic](#internal-logic)
-5. [Configuration & Environment](#configuration--environment)
+5. [Configuration & Environment](#configuration-environment)
 6. [Usage Examples](#usage-examples)
-7. [Edge Cases & Constraints](#edge-cases--constraints)
-8. [Best Practices & Notes](#best-practices--notes)
+7. [Edge Cases & Constraints](#edge-cases-constraints)
+8. [Best Practices & Notes](#best-practices-notes)
 
 ## Overview
 
-This FastAPI application provides a single endpoint (`/upload`) to accept a ZIP file upload, extract its contents, and process the extracted files using a summarization function. The extracted files are then zipped again and stored in the `output_zip` directory.
+This FastAPI application provides a simple API for uploading ZIP files, extracting their contents, and running a summarization process on the extracted files in the background. It uses unique session IDs for multi-user isolation and tracks the processing status of each session.
 
 ## Architecture & Design
 
-The application follows a simple, linear workflow:
+The application follows a simple, modular design with the following key components:
 
-1. Accept a ZIP file upload.
-2. Validate the file type.
-3. Save the uploaded file.
-4. Extract the ZIP file contents.
-5. Summarize the extracted files using the `summarizer` function.
-6. Zip the summarized files again.
-7. Return a success message with details about the processed file.
+- **Main Application (`__init__.py`)**
+  - Initializes the FastAPI application and configures CORS.
+  - Sets up the directories for uploads, extracted files, and output.
+  - Tracks the processing status of each session.
 
-### Key Design Patterns
+- **Summarizer Function (`summarizer`)**
+  - Runs the summarization process in the background with session tracking.
+  - Passes the processing status and output directory to the `Summarize` class for progress updates.
 
-- **Input/Output (I/O) Operations**: The application uses the `zipfile` library to handle ZIP file extraction and creation.
-- **Error Handling**: The application raises `HTTPException` for invalid file types or bad ZIP files.
+- **Zip Folder Function (`zip_folder`)**
+  - Zips the output folder for a given session after the summarization process is completed.
 
-### Important Abstractions
-
-- **`summarizer` function**: Responsible for summarizing the contents of a given folder.
-- **`zip_folder` function**: Zips the contents of a specified folder.
-
-### Dependencies and Integrations
-
-- **FastAPI**: The application framework.
-- **`summarize` module**: The summarization functionality, which is not shown in the provided code.
-- **`zipfile` library**: Used for ZIP file extraction and creation.
+- **Dependencies**
+  - `fastapi`: FastAPI framework for building the API.
+  - `summarize`: Custom module for summarization process (imported from `summarize.py`).
 
 ## Public Interfaces
 
-### `/` (GET)
+### Endpoints
 
-Returns a simple JSON response: `{"Hello": "World"}`
+#### `GET /`
 
-### `/upload` (POST)
+- **Purpose:** Check if the API is running.
+- **Response:** A JSON response with the status "running".
 
-Accepts a ZIP file upload and processes it as described in the [Overview](#overview) section.
+#### `GET /download/{name}`
 
-**Parameters**
+- **Purpose:** Download the generated ZIP file by name.
+- **Parameters:**
+  - `name` (str): The name of the ZIP file to download.
+- **Response:** A `FileResponse` containing the requested ZIP file.
+- **Exceptions:**
+  - `404 Not Found`: Raised if the ZIP file is not found.
 
-- `file` (File, required): The ZIP file to be uploaded.
+#### `GET /status/{session_id}`
 
-**Return value**
+- **Purpose:** Get the processing status for a given session.
+- **Parameters:**
+  - `session_id` (str): The session ID to retrieve the status for.
+- **Response:** A JSON response containing the processing status for the given session ID.
+- **Exceptions:**
+  - `404 Not Found`: Raised if the session ID is not found.
 
-A JSON response containing a success message and details about the processed file:
+#### `GET /sessions`
 
-```json
-{
-  "message": "File uploaded and extracted successfully.",
-  "filename": "<uploaded_file_name>",
-  "extracted_to": "<extraction_path>",
-  "folder_to_be_summarized": "<summarized_folder_path>"
-}
-```
+- **Purpose:** List all active processing sessions and their statuses.
+- **Response:** A JSON response containing a list of active sessions and their total count.
 
-**Exceptions**
+#### `POST /upload`
 
-- `400 Bad Request`: Raised when the uploaded file is not a ZIP file or the ZIP file is invalid.
+- **Purpose:** Accept a ZIP file upload and extract its contents.
+- **Request Body:**
+  - `file` (UploadFile): The ZIP file to upload.
+- **Response:** A JSON response containing the processing status, filename, session ID, and message.
+- **Exceptions:**
+  - `400 Bad Request`: Raised if the file is not a ZIP file or if the extracted folder is not found.
 
 ## Internal Logic
 
-### `summarizer` function
+### Critical Algorithms or Workflows
 
-```python
-def summarizer(folder_to_be_summarized: str, name: str):
-    Summarize(folder_to_be_summarized, name).summarize()
-```
+1. **File Upload and Extraction:**
+   - The application generates a unique session ID for each uploaded file.
+   - It saves the uploaded file to a session-specific directory and extracts its contents to another session-specific directory.
+   - The application looks for a nested folder with the same name as the uploaded ZIP file and uses it as the folder to be summarized if found.
 
-This function uses the `Summarize` class from the `summarize` module to summarize the contents of the specified folder. The implementation details of the `Summarize` class are not shown in the provided code.
+2. **Summarization Process:**
+   - The `summarizer` function runs the summarization process in the background using the `Summarize` class from the `summarize` module.
+   - It passes the processing status and output directory to the `Summarize` class for progress updates.
 
-### `zip_folder` function
+3. **Zip Folder:**
+   - The `zip_folder` function zips the output folder for a given session after the summarization process is completed.
+   - It uses the session ID in the output path for multi-session isolation.
 
-```python
-def zip_folder(name: str):
-    # ...
-```
+### Non-obvious Implementation Decisions
 
-This function zips the contents of the folder with the given name, located in the `output` directory, and stores the zipped file in the `output_zip` directory.
+- The application uses unique session IDs for multi-user isolation to ensure that each user's uploads and processing are kept separate.
+- It tracks the processing status of each session to provide real-time updates on the progress of the summarization process.
 
 ## Configuration & Environment
 
-- **Environment Variables**: None required.
-- **Configuration Options**: None specified.
-- **External Services or Resources Used**: None specified.
+### Required Environment Variables
+
+- None
+
+### Configuration Options
+
+- The `CORS` middleware allows all origins, credentials, methods, and headers for simplicity. In a production environment, you should configure specific origins, methods, and headers.
+- The `BASE_DIR`, `UPLOAD_DIR`, `EXTRACT_DIR`, `OUTPUT_DIR`, and `OUTPUT_ZIP_DIR` variables define the directories used for storing uploaded files, extracted files, output files, and zipped output files, respectively.
+
+### External Services or Resources Used
+
+- None
 
 ## Usage Examples
 
-1. **Upload a ZIP file**:
+### Upload a ZIP File and Start Summarization
 
 ```bash
 curl -X POST -H "Content-Type: multipart/form-data" -F "file=@path/to/your/file.zip" http://localhost:8000/upload
 ```
 
-Replace `path/to/your/file.zip` with the path to your ZIP file.
+### Check the Processing Status of a Session
+
+```bash
+curl -X GET http://localhost:8000/status/<session_id>
+```
+
+### Download the Generated ZIP File
+
+```bash
+curl -X GET -o output.zip http://localhost:8000/download/<name>
+```
+
+### List All Active Processing Sessions
+
+```bash
+curl -X GET http://localhost:8000/sessions
+```
 
 ## Edge Cases & Constraints
 
-- **Limitation**: The application assumes that the uploaded ZIP file contains only one folder with the same name as the file (without the extension). If the ZIP file contains multiple folders or has a different structure, the summarization and zipping processes may not work as expected.
-- **Assumptions**: The application assumes that the `summarize` module and the `Summarize` class are available and functioning correctly.
-- **Performance Considerations**: The application may take some time to process large ZIP files, as it needs to extract their contents and summarize the files. Additionally, zipping the summarized files again may also take some time.
+### Limitations
+
+- The application assumes that the uploaded ZIP file contains a folder with the same name as the file (or a nested folder with the same name) that needs to be summarized.
+- It does not support resuming interrupted summarization processes.
+
+### Assumptions
+
+- The application assumes that the `summarize` module provides a working summarization process.
+
+### Performance Considerations
+
+- The application runs the summarization process in the background using FastAPI's `BackgroundTasks` feature, which helps to keep the API responsive while long-running tasks are executed.
+- However, the performance of the summarization process itself is dependent on the `summarize` module and may vary based on the size and complexity of the input data.
 
 ## Best Practices & Notes
 
-- **Security Considerations**: The application does not perform any input validation on the extracted files, which could potentially lead to security vulnerabilities if malicious ZIP files are uploaded. It is recommended to add input validation and sanitization for the extracted files.
-- **Maintainability Tips**: To improve maintainability, consider adding logging to track the progress of the file processing workflow. Additionally, consider adding tests to ensure that the application behaves as expected under different scenarios.
-- **Extension Points**: The application could be extended to support additional file types or to provide more detailed processing information in the response.
+### Security Considerations
+
+- In a production environment, you should configure the `CORS` middleware to allow only specific origins, methods, and headers.
+- You should also implement proper authentication and authorization mechanisms to protect the API and its resources.
+
+### Maintainability Tips
+
+- Keep the code modular and well-organized to make it easier to maintain and extend.
+- Use meaningful variable and function names to improve code readability.
+- Add comments and docstrings to explain the purpose and functionality of important code sections.
+
+### Extension Points
+
+- The application can be extended by adding new endpoints for different file types or processing tasks.
+- You can also modify the `summarize` module to provide different summarization algorithms or improve the performance of the existing one.
+
+## Style Guidelines
+
+- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code.
+- Use clear and concise variable, function, and endpoint names to improve code readability.
+- Add docstrings to explain the purpose and functionality of important code sections, modules, and endpoints.
+- Use Markdown formatting for documentation to make it easy to read and navigate.
 
 ## Imports
 
 This script imports the following modules:
+
 - `typing.Union`
 - `os`
 - `zipfile`
 - `shutil`
+- `uuid`
 - `fastapi.FastAPI`
 - `fastapi.File`
 - `fastapi.UploadFile`
 - `fastapi.HTTPException`
+- `fastapi.BackgroundTasks`
+- `fastapi.responses.FileResponse`
+- `fastapi.responses.JSONResponse`
+- `fastapi.middleware.cors.CORSMiddleware`
 - `summarize.Summarize`
+  - **Available functions:** summarize, _update_progress, __init__
+  - **Source:** `summarize.py`
 
 ## Functions
 
-### summarizer()
+### `summarizer()`
 
-- **Arguments:** folder_to_be_summarized, name
-- **Returns:** None
-- **Description:** None
+- **Arguments:** `folder_to_be_summarized, name, session_id`
+- **Returns:** `None`
+- **Description:** Run summarization in background with session tracking.
 
-### zip_folder()
+### `zip_folder()`
 
-- **Arguments:** name
-- **Returns:** None
-- **Description:** None
+- **Arguments:** `name, session_id`
+- **Returns:** `str`
+- **Description:** Zip the output folder for a given session.
 
-### read_root()
+### `read_root()`
 
-- **Arguments:** None
-- **Returns:** None
+- **Arguments:** `None`
+- **Returns:** `dict`
 - **Description:** None
 
 
@@ -166,9 +232,36 @@ This script imports the following modules:
 
 No classes found.
 
+## Type Hints
+
+### `summarizer`
+
+| Argument | Type |
+|----------|------|
+| `folder_to_be_summarized` | `str` |
+| `name` | `str` |
+| `session_id` | `str` |
+
+**Returns:** `None`
+
+### `zip_folder`
+
+| Argument | Type |
+|----------|------|
+| `name` | `str` |
+| `session_id` | `str` |
+
+**Returns:** `str`
+
+### `read_root`
+
+
+**Returns:** `dict`
+
 ## Constants
 
-This script defines the following constants:
-- `{'name': 'UPLOAD_DIR', 'value': "'uploads'"}`
-- `{'name': 'EXTRACT_DIR', 'value': "'extracted'"}`
+No constants found.
 
+---
+
+*This documentation was generated automatically by DocsGenerator.*

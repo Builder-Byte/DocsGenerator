@@ -184,18 +184,100 @@ class DependencyGenerator:
                 todos.append({'line': i, 'text': line.strip()})
         return todos
 
-    def summarize_file(self, content):
-        """Return a combined summary dict for a file using the various extractors."""
-        return {
-            'imports': self.extract_imports(content),
+    def analyze_cross_library_imports(
+        self, 
+        imports: list, 
+        project_files: dict
+    ) -> dict:
+        """
+        Analyze imports and resolve them to project files for cross-library documentation.
+        
+        Args:
+            imports: List of import strings (e.g., ['module.function', 'package.Class'])
+            project_files: Dict mapping relative file paths to their contents
+            
+        Returns:
+            Dict mapping import names to their resolved information including
+            available functions/classes from the source file.
+        """
+        cross_library_info = {}
+        
+        for imp in imports:
+            # Parse the import to get module path
+            parts = imp.split('.')
+            if not parts:
+                continue
+                
+            # Try to find matching project file
+            possible_paths = [
+                f"{'/'.join(parts)}.py",
+                f"{parts[0]}.py",
+                f"{'/'.join(parts[:-1])}.py" if len(parts) > 1 else None
+            ]
+            
+            for rel_path in project_files.keys():
+                for possible in possible_paths:
+                    if possible and rel_path.endswith(possible):
+                        # Found a matching file, extract its contents
+                        source_content = project_files[rel_path]
+                        source_functions = self.extract_functions(source_content)
+                        source_classes = self.extract_classes(source_content)
+                        
+                        cross_library_info[imp] = {
+                            'source_file': rel_path,
+                            'functions': [f['name'] for f in source_functions],
+                            'classes': [c['name'] for c in source_classes],
+                            'is_local': True
+                        }
+                        break
+                if imp in cross_library_info:
+                    break
+            
+            # If not found in project, mark as external
+            if imp not in cross_library_info:
+                cross_library_info[imp] = {
+                    'source_file': None,
+                    'functions': [],
+                    'classes': [],
+                    'is_local': False,
+                    'note': 'External library'
+                }
+        
+        return cross_library_info
+
+    def summarize_file(self, content: str, project_files: dict = {}) -> dict:
+        """
+        Return a combined summary dict for a file using the various extractors.
+        
+        Args:
+            content: The file content to analyze
+            project_files: Optional dict of all project files for cross-library analysis
+            
+        Returns:
+            Dict containing all extracted information about the file
+        """
+        
+        imports = self.extract_imports(content)
+        
+        result = {
+            'imports': imports,
             'functions': self.extract_functions(content),
             'classes': self.extract_classes(content),
             'docstrings': self.extract_docstrings(content),
             'type_hints': self.extract_type_hints(content),
             'constants': self.extract_top_level_constants(content),
-            #'todos': self.extract_todos(content)
         }
+        
+        # Add cross-library analysis if project files are provided
+        if project_files:
+            result['cross_library_functions'] = self.analyze_cross_library_imports(
+                imports, project_files
+            )
+        
+        return result
+
     def __init__(self) -> None:
+        """Initialize the DependencyGenerator."""
         pass
 
 

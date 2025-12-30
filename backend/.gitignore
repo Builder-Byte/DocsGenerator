@@ -13,3 +13,5 @@ extracted
 uploads 
 output_zip
 src
+*.json
+*.md
