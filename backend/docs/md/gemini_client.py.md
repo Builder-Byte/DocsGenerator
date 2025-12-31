@@ -1,6 +1,6 @@
 # File Name
 
-gemini_client.py
+`gemini_client.py`
 
 # Summary
 
@@ -10,147 +10,147 @@ gemini_client.py
 
 1. [Overview](#overview)
 2. [Purpose](#purpose)
-3. [High-level Responsibilities](#high-level-responsibilities)
-4. [Intended Use Cases](#intended-use-cases)
-5. [Architecture & Design](#architecture--design)
-6. [Dependencies and Integrations](#dependencies-and-integrations)
-7. [Public Interfaces](#public-interfaces)
-8. [Usage Examples](#usage-examples)
-9. [Edge Cases & Constraints](#edge-cases--constraints)
-10. [Best Practices & Notes](#best-practices--notes)
+3. [High-level Responsibilities](#responsibilities)
+4. [Intended Use Cases](#use-cases)
+5. [Architecture & Design](#architecture)
+6. [Public Interfaces](#public-interfaces)
+7. [Internal Logic](#internal-logic)
+8. [Configuration & Environment](#configuration)
+9. [Usage Examples](#usage-examples)
+10. [Edge Cases & Constraints](#edge-cases)
+11. [Best Practices & Notes](#best-practices)
+12. [Style Guidelines](#style-guidelines)
 
 ## Overview
 
-The `GeminiClient` class is a Python client for interacting with the Gemini model from Google's GenAI library. It provides a simple interface for generating text using the Gemini model.
+The `GeminiClient` class is a client for interacting with the Gemini model provided by Google's Generative AI (GenAI) service. It provides a simple interface for sending queries to the Gemini model and receiving summarized responses.
 
 ## Purpose
 
-The purpose of this file is to provide a client for the Gemini model, enabling users to easily generate text using the Gemini model without having to manage the underlying details of the GenAI client.
+The purpose of this file is to provide a convenient way to interact with the Gemini model for summarization tasks. It abstracts the complexities of the GenAI client and provides a simple, easy-to-use interface for sending queries and receiving responses.
 
 ## High-level Responsibilities
 
-- Initialize a GenAI client with the provided API key.
-- Provide a `summarize` method to generate text using the Gemini model.
+- Initialize a GenAI client.
+- Provide a method for sending queries to the Gemini model and receiving summarized responses.
 
 ## Intended Use Cases
 
-This client is intended for use in applications that require generating text using the Gemini model. It is particularly useful for summarizing long texts or extracting key information.
+- Summarizing long texts or documents.
+- Extracting key points from large amounts of data.
+- Generating concise summaries for content creation or review.
 
 ## Architecture & Design
 
-The `GeminiClient` class follows a simple facade pattern, providing a clean and easy-to-use interface for generating text with the Gemini model. It uses the `genai` library to interact with the Gemini model.
+The `GeminiClient` class follows a simple design pattern with a single responsibility: interacting with the Gemini model for summarization tasks. It uses the `genai` library to communicate with the GenAI service.
 
 ### Key Design Patterns
 
-- Facade pattern: The `GeminiClient` class provides a simplified interface to the `genai` library, hiding the complexity of the underlying API.
+- Singleton pattern for the GenAI client to ensure only one instance is created.
 
 ### Important Abstractions
 
-- `genai.Client`: The underlying client used to interact with the Gemini model.
+- The `genai.Client` class is used to interact with the GenAI service.
 
-## Dependencies and Integrations
+### Dependencies and Integrations
 
-- `genai`: The `genai` library is required to use the Gemini model. It can be installed using `pip install google-genai`.
+- `google-genai`: The library used to interact with Google's Generative AI service.
 
 ## Public Interfaces
 
-### `GeminiClient`
+### `summarize(query: str) -> str`
 
-#### `__init__(self) -> None`
+Sends a query to the Gemini model and returns a summarized response.
 
-Initializes a new `GeminiClient` instance with a GenAI client.
+**Parameters:**
 
-**Parameters**
+- `query` (str): The input text to be summarized.
 
-- `None`
+**Return value:**
 
-**Return**
+- `str`: The summarized response from the Gemini model.
 
-- `None`
+**Exceptions:**
 
-#### `summarize(self, query: str) -> str`
+- `Exception`: Any error that occurs during the request will be caught and re-raised as a generic exception.
 
-Generates a summary of the given `query` using the Gemini model.
+## Internal Logic
 
-**Parameters**
+The `summarize` method constructs a prompt with a system instruction and the user's query. It then sends this prompt to the Gemini model using the `generate_content` method of the `genai.Client` class. The response from the model is returned as the summarized text.
 
-- `query` (str): The text to summarize.
+### Non-obvious Implementation Decisions
 
-**Return**
+- The system instruction is hardcoded in the prompt to ensure consistent behavior across different queries.
+- The Gemini model is specified as "gemini-2.0-flash" to ensure the use of the latest Gemini model for summarization tasks.
 
-- `str`: The generated summary.
+## Configuration & Environment
 
-**Exceptions**
+### Required Environment Variables
 
-- `Exception`: If there is an error generating the summary, an `Exception` will be raised.
+- `GEMINI_API_KEY`: The API key for authenticating with the GenAI service.
+
+### External Services or Resources Used
+
+- Google's Generative AI (GenAI) service.
 
 ## Usage Examples
-
-### Summarizing a Text
 
 ```python
 from gemini_client import GeminiClient
 
 client = GeminiClient()
-summary = client.summarize("Your long text goes here.")
+summary = client.summarize("Your long text or document goes here.")
 print(summary)
 ```
 
 ## Edge Cases & Constraints
 
 - The `summarize` method may return an empty string if the Gemini model fails to generate a summary.
-- The `summarize` method may return a summary that is not entirely accurate or relevant to the input text.
+- The length of the input text is limited by the Gemini model's token limit (currently 2048 tokens).
+- The `GEMINI_API_KEY` environment variable must be set for the client to authenticate with the GenAI service.
 
 ## Best Practices & Notes
 
-- Always ensure that the `GEMINI_API_KEY` environment variable is set before using the `GeminiClient`.
-- The `summarize` method may take some time to return, depending on the length of the input text and the current load on the Gemini model.
-- The `summarize` method may return different results each time it is called, as the Gemini model is a probabilistic model.
-
-## Security Considerations
-
-- The `GEMINI_API_KEY` environment variable should be kept secret and not exposed in version control systems.
-- The `summarize` method may generate sensitive information if the input text contains sensitive data.
-
-## Maintainability Tips
-
-- The `GeminiClient` class is designed to be simple and easy to understand, making it easy to maintain.
-- The `summarize` method is the only public method of the `GeminiClient` class, making it easy to identify changes that may affect the behavior of the client.
-
-## Extension Points
-
-The `GeminiClient` class can be extended to provide additional functionality, such as generating text for other use cases or integrating with other models.
+- Always validate the API key by checking if the `GEMINI_API_KEY` environment variable is set.
+- Handle exceptions that may occur during the request to prevent unexpected failures.
+- Consider the token limit of the Gemini model when preparing input texts to avoid truncation.
 
 ## Style Guidelines
 
-- The `GeminiClient` class follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).
-- The documentation follows the [Google Python Documentation Style Guide](https://developers.google.com/style/docs).
-- Code snippets are formatted using the [Google Python Code Snippet Style Guide](https://developers.google.com/style/code).
+- Follow PEP 8 style guidelines for Python code.
+- Use clear and concise variable and function names.
+- Include docstrings for all public methods and classes.
+- Use type hints for function signatures to improve readability and maintainability.
+- Include comments to explain complex or non-obvious parts of the code.
+
+_This documentation is intended for production systems, onboarding new engineers, and long-term maintenance. It follows industry documentation standards similar to Google and Microsoft styles, using Markdown formatting and including code snippets where helpful._
 
 ## Imports
 
 This script imports the following modules:
+
 - `google.genai`
 
 ## Functions
 
-### summarize()
+### `summarize()`
 
-- **Arguments:** self, query
-- **Returns:** None
+- **Arguments:** `self, query`
+- **Returns:** `None`
 - **Description:** None
 
-### __init__()
+### `__init__()`
 
-- **Arguments:** self
-- **Returns:** None
+- **Arguments:** `self`
+- **Returns:** `None`
 - **Description:** None
 
 
 ## Classes
 
-### GeminiClient
+### `GeminiClient`
 
+- **Methods:** `summarize, __init__`
 - **Description:** None
 
 
@@ -158,3 +158,6 @@ This script imports the following modules:
 
 No constants found.
 
+---
+
+*This documentation was generated automatically by DocsGenerator.*

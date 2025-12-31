@@ -1,1 +1,196 @@
-{"imports": ["json", "ast", "graphviz.Digraph"], "functions": [{"name": "_safe_parse", "args": ["self", "content"], "returns": null, "docstring": null}, {"name": "generateGraph", "args": ["self", "content"], "returns": "None", "docstring": null}, {"name": "extract_imports", "args": ["self", "content"], "returns": "list", "docstring": null}, {"name": "extract_functions", "args": ["self", "content"], "returns": "list", "docstring": null}, {"name": "extract_classes", "args": ["self", "content"], "returns": "list", "docstring": "Return classes with bases, methods and docstring.\n\nReturns list of dicts: {name, bases, methods, docstring}"}, {"name": "extract_docstrings", "args": ["self", "content"], "returns": "dict", "docstring": "Return module docstring and per-symbol docstrings."}, {"name": "extract_type_hints", "args": ["self", "content"], "returns": null, "docstring": "Extract simple type hints from top-level functions.\n\nReturns dict mapping function name to {'args': {arg: annotation}, 'returns': annotation}"}, {"name": "extract_top_level_constants", "args": ["self", "content"], "returns": null, "docstring": "Return module-level simple constants (NAME = Constant).\n\nReturns list of dicts: {name, value_repr}"}, {"name": "extract_todos", "args": ["self", "content"], "returns": null, "docstring": "Return list of comment TODO/FIXME lines with line numbers."}, {"name": "summarize_file", "args": ["self", "content"], "returns": null, "docstring": "Return a combined summary dict for a file using the various extractors."}, {"name": "__init__", "args": ["self"], "returns": "None", "docstring": null}, {"name": "add_node", "args": ["node", "parent"], "returns": null, "docstring": null}], "classes": [{"name": "DependencyGenerator", "bases": [], "methods": ["_safe_parse", "generateGraph", "extract_imports", "extract_functions", "extract_classes", "extract_docstrings", "extract_type_hints", "extract_top_level_constants", "extract_todos", "summarize_file", "__init__"], "docstring": null}], "docstrings": {"module": null, "functions": {"_safe_parse": null, "generateGraph": null, "extract_imports": null, "extract_functions": null, "extract_classes": "Return classes with bases, methods and docstring.\n\nReturns list of dicts: {name, bases, methods, docstring}", "extract_docstrings": "Return module docstring and per-symbol docstrings.", "extract_type_hints": "Extract simple type hints from top-level functions.\n\nReturns dict mapping function name to {'args': {arg: annotation}, 'returns': annotation}", "extract_top_level_constants": "Return module-level simple constants (NAME = Constant).\n\nReturns list of dicts: {name, value_repr}", "extract_todos": "Return list of comment TODO/FIXME lines with line numbers.", "summarize_file": "Return a combined summary dict for a file using the various extractors.", "__init__": null, "add_node": null}, "classes": {"DependencyGenerator": null}}, "type_hints": {}, "constants": [], "file_name": "dependency_generator.py", "summary": "# DependencyGenerator Documentation\n\n## Table of Contents\n\n1. [Overview](#overview)\n2. [Purpose](#purpose)\n3. [High-level Responsibilities](#high-level-responsibilities)\n4. [Intended Use Cases](#intended-use-cases)\n5. [Architecture & Design](#architecture--design)\n    - [Key Design Patterns](#key-design-patterns)\n    - [Important Abstractions](#important-abstractions)\n    - [Dependencies and Integrations](#dependencies-and-integrations)\n6. [Public Interfaces](#public-interfaces)\n    - [generateGraph](#generategraph)\n    - [extract_imports](#extract_imports)\n    - [extract_functions](#extract_functions)\n    - [extract_classes](#extract_classes)\n    - [extract_docstrings](#extract_docstrings)\n    - [extract_type_hints](#extract_type_hints)\n    - [extract_top_level_constants](#extract_top_level_constants)\n    - [extract_todos](#extract_todos)\n    - [summarize_file](#summarize_file)\n7. [Internal Logic](#internal-logic)\n8. [Configuration & Environment](#configuration--environment)\n9. [Usage Examples](#usage-examples)\n10. [Edge Cases & Constraints](#edge-cases--constraints)\n11. [Best Practices & Notes](#best-practices--notes)\n\n## Overview\n\nThe `DependencyGenerator` class is a utility for analyzing Python code and extracting various metadata such as imports, functions, classes, docstrings, type hints, and top-level constants. It also provides a method to generate a graph visualization of the Abstract Syntax Tree (AST) using Graphviz.\n\n## Purpose\n\nThe primary purpose of this class is to facilitate code analysis and understanding by providing a comprehensive summary of a Python file's contents. Additionally, it enables generating a visual representation of the AST, which can aid in understanding the structure and dependencies of the code.\n\n## High-level Responsibilities\n\n- Parse and analyze Python code using the `ast` module.\n- Extract and summarize various metadata from the code.\n- Generate a graph visualization of the AST using Graphviz (if available).\n\n## Intended Use Cases\n\n- Code analysis and understanding.\n- Generating documentation from code comments and docstrings.\n- Visualizing the structure and dependencies of Python code.\n- Identifying and tracking TODO and FIXME comments in the codebase.\n\n## Architecture & Design\n\n### Key Design Patterns\n\n- **Dependency Injection**: The `Digraph` class is imported using a try-except block, allowing the code to run even if Graphviz is not available.\n- **Strategy Pattern**: Each metadata extraction method (e.g., `extract_imports`, `extract_functions`) follows a similar strategy, iterating through the AST nodes and applying specific conditions to extract the desired information.\n\n### Important Abstractions\n\n- **Abstract Syntax Tree (AST)**: The `ast` module is used to parse and analyze the Python code, providing a structured representation of the code's syntax.\n- **Graphviz**: A library for generating graph visualizations, used to create a visual representation of the AST.\n\n### Dependencies and Integrations\n\n- **ast**: The `ast` module is used for parsing and analyzing Python code.\n- **graphviz** (optional): Used for generating graph visualizations of the AST.\n\n## Public Interfaces\n\n### `generateGraph(content)`\n\nGenerates a graph visualization of the Abstract Syntax Tree (AST) for the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- None\n\n**Notes:**\n\n- Requires the `graphviz` library to be installed.\n- The graph is saved as a PNG file named 'my_ast' in the current directory and opened for viewing.\n\n### `extract_imports(content)`\n\nExtracts a list of imported modules and symbols from the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A list of imported modules and symbols.\n\n### `extract_functions(content)`\n\nExtracts a list of functions from the given Python code, including their names, arguments, return types, and docstrings.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A list of dictionaries, where each dictionary represents a function with the following keys:\n  - `name` (str): The function name.\n  - `args` (list of str): The function argument names.\n  - `returns` (str): The return type, if annotated.\n  - `docstring` (str): The function's docstring, if present.\n\n### `extract_classes(content)`\n\nExtracts a list of classes from the given Python code, including their names, bases, methods, and docstrings.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A list of dictionaries, where each dictionary represents a class with the following keys:\n  - `name` (str): The class name.\n  - `bases` (list of str): The class's base classes.\n  - `methods` (list of str): The class's method names.\n  - `docstring` (str): The class's docstring, if present.\n\n### `extract_docstrings(content)`\n\nExtracts the module's docstring and per-symbol (functions and classes) docstrings from the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A dictionary with the following keys:\n  - `module` (str): The module's docstring, if present.\n  - `functions` (dict): A mapping of function names to their docstrings.\n  - `classes` (dict): A mapping of class names to their docstrings.\n\n### `extract_type_hints(content)`\n\nExtracts simple type hints from top-level functions in the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A dictionary mapping function names to another dictionary containing the following keys:\n  - `args` (dict): A mapping of argument names to their type hints.\n  - `returns` (str): The return type hint, if present.\n\n### `extract_top_level_constants(content)`\n\nExtracts module-level simple constants (NAME = Constant) from the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A list of dictionaries, where each dictionary represents a constant with the following keys:\n  - `name` (str): The constant name.\n  - `value` (str): The constant's value as a string representation.\n\n### `extract_todos(content)`\n\nExtracts a list of comment TODO/FIXME lines with line numbers from the given Python code.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A list of dictionaries, where each dictionary represents a TODO/FIXME comment with the following keys:\n  - `line` (int): The line number where the comment is located.\n  - `text` (str): The comment text.\n\n### `summarize_file(content)`\n\nReturns a combined summary dictionary for a file using the various extractor methods.\n\n**Parameters:**\n\n- `content` (str): The Python code as a string.\n\n**Returns:**\n\n- A dictionary containing the following keys:\n  - `imports` (list of str): The imported modules and symbols.\n  - `functions` (list of dict): The extracted functions.\n  - `classes` (list of dict): The extracted classes.\n  - `docstrings` (dict): The extracted docstrings.\n  - `type_hints` (dict): The extracted type hints.\n  - `constants` (list of dict): The extracted top-level constants.\n  - `todos` (list of dict): The extracted TODO/FIXME comments.\n\n## Internal Logic\n\nThe `DependencyGenerator` class uses the `ast` module to parse and analyze the given Python code. It then iterates through the Abstract Syntax Tree (AST) nodes to extract the desired metadata using specific conditions for each type of information (e.g., imports, functions, classes, docstrings, etc.).\n\n## Configuration & Environment\n\n- **Required Environment Variables:** None\n- **Configuration Options:** None\n- **External Services or Resources Used:**\n  - `graphviz` (optional): Used for generating graph visualizations of the AST.\n\n## Usage Examples\n\n```python\ngenerator = DependencyGenerator()\ncontent = \"\"\"\nimport math\nimport os\n\ndef add(a, b):\n    \"\"\"Add two numbers.\"\"\"\n    return a + b\n\nclass MyClass:\n    \"\"\"A simple class with a method.\"\"\"\n    def multiply(self, a, b):\n        \"\"\"Multiply two numbers.\"\"\"\n        return a * b\n\nprint(add(2, 3))  # Output: 5\n```\n\n```python\nsummary = generator.summarize_file(content)\nprint(summary)\n```\n\nOutput:\n\n```python\n{\n    'imports': ['math', 'os'],\n    'functions': [\n        {\n            'name': 'add',\n            'args': ['a', 'b'],\n            'returns': None,\n            'docstring': 'Add two numbers.'\n        }\n    ],\n    'classes': [\n        {\n            'name': 'MyClass',\n            'bases': [],\n            'methods': ['multiply'],\n            'docstring': 'A simple class with a method.'\n        }\n    ],\n    'docstrings': {\n        'module': None,\n        'functions': {'add': 'Add two numbers.'},\n        'classes': {'MyClass': 'A simple class with a method.'}\n    },\n    'type_hints': {},\n    'constants': [],\n    'todos': []\n}\n```\n\n## Edge Cases & Constraints\n\n- The `generateGraph` method requires the `graphviz` library to be installed. If it is not available, the method prints a message and returns None.\n- The `extract_imports`, `extract_functions`, `extract_classes`, `extract_docstrings`, `extract_type_hints`, and `extract_top_level_constants` methods return empty lists or dictionaries if the given code cannot be parsed successfully.\n- The `extract_todos` method only considers TODO and FIXME comments at the beginning of a line. It may not capture all desired TODO/FIXME comments if they are not formatted this way.\n\n## Best Practices & Notes\n\n- The `DependencyGenerator` class provides a comprehensive summary of a Python file's contents, aiding in code analysis and understanding.\n- The `generateGraph` method can help visualize the structure and dependencies of the code, making it easier to understand and maintain.\n- The extracted metadata can be used to generate documentation, identify TODO and FIXME comments, and track changes in the codebase.\n- To use the `graphviz` library, install it using `pip install graphviz` and ensure that the `graphviz` executable is added to your system's PATH.\n- The `ast` module is used to parse and analyze the Python code, providing a structured representation of the code's syntax. This allows for precise and efficient extraction of metadata.\n\n## Style Guidelines\n\n- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code.\n- Use clear and concise variable and function names to improve readability.\n- Add docstrings to functions, classes, and modules to explain their purpose and usage.\n- Use comments to explain complex or non-obvious parts of the code.\n- Keep the code organized and maintainable by using appropriate indentation, spacing, and formatting.\n\nThis documentation follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) for consistency and readability."}
+{
+  "imports": [
+    "json",
+    "ast",
+    "graphviz.Digraph"
+  ],
+  "functions": [
+    {
+      "name": "_safe_parse",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": null,
+      "docstring": null
+    },
+    {
+      "name": "generateGraph",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": "None",
+      "docstring": null
+    },
+    {
+      "name": "extract_imports",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": "list",
+      "docstring": null
+    },
+    {
+      "name": "extract_functions",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": "list",
+      "docstring": null
+    },
+    {
+      "name": "extract_classes",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": "list",
+      "docstring": "Return classes with bases, methods and docstring.\n\nReturns list of dicts: {name, bases, methods, docstring}"
+    },
+    {
+      "name": "extract_docstrings",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": "dict",
+      "docstring": "Return module docstring and per-symbol docstrings."
+    },
+    {
+      "name": "extract_type_hints",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": null,
+      "docstring": "Extract simple type hints from top-level functions.\n\nReturns dict mapping function name to {'args': {arg: annotation}, 'returns': annotation}"
+    },
+    {
+      "name": "extract_top_level_constants",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": null,
+      "docstring": "Return module-level simple constants (NAME = Constant).\n\nReturns list of dicts: {name, value_repr}"
+    },
+    {
+      "name": "extract_todos",
+      "args": [
+        "self",
+        "content"
+      ],
+      "returns": null,
+      "docstring": "Return list of comment TODO/FIXME lines with line numbers."
+    },
+    {
+      "name": "analyze_cross_library_imports",
+      "args": [
+        "self",
+        "imports",
+        "project_files"
+      ],
+      "returns": "dict",
+      "docstring": "Analyze imports and resolve them to project files for cross-library documentation.\n\nArgs:\n    imports: List of import strings (e.g., ['module.function', 'package.Class'])\n    project_files: Dict mapping relative file paths to their contents\n    \nReturns:\n    Dict mapping import names to their resolved information including\n    available functions/classes from the source file."
+    },
+    {
+      "name": "summarize_file",
+      "args": [
+        "self",
+        "content",
+        "project_files"
+      ],
+      "returns": "dict",
+      "docstring": "Return a combined summary dict for a file using the various extractors.\n\nArgs:\n    content: The file content to analyze\n    project_files: Optional dict of all project files for cross-library analysis\n    \nReturns:\n    Dict containing all extracted information about the file"
+    },
+    {
+      "name": "__init__",
+      "args": [
+        "self"
+      ],
+      "returns": "None",
+      "docstring": "Initialize the DependencyGenerator."
+    },
+    {
+      "name": "add_node",
+      "args": [
+        "node",
+        "parent"
+      ],
+      "returns": null,
+      "docstring": null
+    }
+  ],
+  "classes": [
+    {
+      "name": "DependencyGenerator",
+      "bases": [],
+      "methods": [
+        "_safe_parse",
+        "generateGraph",
+        "extract_imports",
+        "extract_functions",
+        "extract_classes",
+        "extract_docstrings",
+        "extract_type_hints",
+        "extract_top_level_constants",
+        "extract_todos",
+        "analyze_cross_library_imports",
+        "summarize_file",
+        "__init__"
+      ],
+      "docstring": null
+    }
+  ],
+  "docstrings": {
+    "module": null,
+    "functions": {
+      "_safe_parse": null,
+      "generateGraph": null,
+      "extract_imports": null,
+      "extract_functions": null,
+      "extract_classes": "Return classes with bases, methods and docstring.\n\nReturns list of dicts: {name, bases, methods, docstring}",
+      "extract_docstrings": "Return module docstring and per-symbol docstrings.",
+      "extract_type_hints": "Extract simple type hints from top-level functions.\n\nReturns dict mapping function name to {'args': {arg: annotation}, 'returns': annotation}",
+      "extract_top_level_constants": "Return module-level simple constants (NAME = Constant).\n\nReturns list of dicts: {name, value_repr}",
+      "extract_todos": "Return list of comment TODO/FIXME lines with line numbers.",
+      "analyze_cross_library_imports": "Analyze imports and resolve them to project files for cross-library documentation.\n\nArgs:\n    imports: List of import strings (e.g., ['module.function', 'package.Class'])\n    project_files: Dict mapping relative file paths to their contents\n    \nReturns:\n    Dict mapping import names to their resolved information including\n    available functions/classes from the source file.",
+      "summarize_file": "Return a combined summary dict for a file using the various extractors.\n\nArgs:\n    content: The file content to analyze\n    project_files: Optional dict of all project files for cross-library analysis\n    \nReturns:\n    Dict containing all extracted information about the file",
+      "__init__": "Initialize the DependencyGenerator.",
+      "add_node": null
+    },
+    "classes": {
+      "DependencyGenerator": null
+    }
+  },
+  "type_hints": {},
+  "constants": [],
+  "cross_library_functions": {
+    "json": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "ast": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "graphviz.Digraph": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    }
+  },
+  "file_name": "dependency_generator.py",
+  "summary": "# DependencyGenerator Documentation\n\n## Table of Contents\n\n1. [Overview](#overview)\n2. [Purpose](#purpose)\n3. [High-level Responsibilities](#high-level-responsibilities)\n4. [Intended Use Cases](#intended-use-cases)\n5. [Architecture & Design](#architecture--design)\n    - [Key Design Patterns](#key-design-patterns)\n    - [Important Abstractions](#important-abstractions)\n6. [Dependencies and Integrations](#dependencies-and-integrations)\n7. [Public Interfaces](#public-interfaces)\n    - [DependencyGenerator Class](#dependencygenerator-class)\n    - [Methods](#methods)\n8. [Internal Logic](#internal-logic)\n    - [Critical Algorithms or Workflows](#critical-algorithms-or-workflows)\n    - [Non-obvious Implementation Decisions](#non-obvious-implementation-decisions)\n9. [Configuration & Environment](#configuration--environment)\n    - [Required Environment Variables](#required-environment-variables)\n    - [Configuration Options](#configuration-options)\n    - [External Services or Resources Used](#external-services-or-resources-used)\n10. [Usage Examples](#usage-examples)\n11. [Edge Cases & Constraints](#edge-cases--constraints)\n    - [Limitations](#limitations)\n    - [Assumptions](#assumptions)\n    - [Performance Considerations](#performance-considerations)\n12. [Best Practices & Notes](#best-practices--notes)\n    - [Security Considerations](#security-considerations)\n    - [Maintainability Tips](#maintainability-tips)\n    - [Extension Points](#extension-points)\n13. [Style Guidelines](#style-guidelines)\n\n## Overview\n\nThe `DependencyGenerator` class is a utility for analyzing Python code and extracting various metadata, such as imports, functions, classes, docstrings, type hints, and constants. It also provides functionality to generate a graph of the abstract syntax tree (AST) using Graphviz and analyze cross-library imports.\n\n## Purpose\n\nThe primary purpose of this class is to facilitate code analysis and documentation generation by providing a centralized way to extract relevant metadata from Python files. It can be used to create documentation for enterprise-grade systems, onboarding new engineers, and long-term maintenance.\n\n## High-level Responsibilities\n\n- Extract metadata from Python files, such as imports, functions, classes, docstrings, type hints, and constants.\n- Generate a graph of the AST using Graphviz (if available).\n- Analyze cross-library imports and resolve them to project files for cross-library documentation.\n\n## Intended Use Cases\n\n- Generating documentation for Python projects.\n- Analyzing code dependencies and imports.\n- Identifying available functions and classes in a project or external libraries.\n- Visualizing the AST of a Python file.\n\n## Architecture & Design\n\n### Key Design Patterns\n\n- **Dependency Injection**: The `summarize_file` method accepts an optional `project_files` argument to enable cross-library analysis. This allows the class to be used independently or in conjunction with a project context.\n\n### Important Abstractions\n\n- **Abstract Syntax Tree (AST)**: The class uses the `ast` module to parse and analyze Python code. It extracts metadata by walking the AST and processing relevant nodes.\n\n## Dependencies and Integrations\n\n- `json`: Used for JSON serialization/deserialization in the `extract_imports` method.\n- `ast`: The core module for parsing and analyzing Python code.\n- `graphviz` (optional): Used for generating graphs of the AST. If not available, the `generateGraph` method prints a message and returns `None`.\n\n## Public Interfaces\n\n### DependencyGenerator Class\n\nThe `DependencyGenerator` class is the public interface for interacting with the code analysis functionality.\n\n#### Methods\n\n- `__init__()`: Initializes the `DependencyGenerator` instance. No arguments are required.\n- `_safe_parse(content)`: Parses the given `content` using the `ast.parse` method and returns the resulting AST or `None` if an exception occurs.\n- `generateGraph(content)`: Generates a graph of the AST using Graphviz (if available) and saves it as a file named 'my_ast.png'. If Graphviz is not available, it prints a message and returns `None`.\n- `extract_imports(content)`: Returns a list of import names extracted from the given `content`.\n- `extract_functions(content)`: Returns a list of dictionaries containing function names, arguments, return types, and docstrings extracted from the given `content`.\n- `extract_classes(content)`: Returns a list of dictionaries containing class names, bases, methods, and docstrings extracted from the given `content`.\n- `extract_docstrings(content)`: Returns a dictionary containing the module docstring and per-symbol docstrings (functions and classes) extracted from the given `content`.\n- `extract_type_hints(content)`: Returns a dictionary mapping function names to their argument and return type hints extracted from the given `content`.\n- `extract_top_level_constants(content)`: Returns a list of dictionaries containing top-level constant names and values extracted from the given `content`.\n- `extract_todos(content)`: Returns a list of dictionaries containing TODO/FIXME lines with their line numbers extracted from the given `content`.\n- `analyze_cross_library_imports(imports, project_files)`: Analyzes the given `imports` and resolves them to project files for cross-library documentation. Returns a dictionary mapping import names to their resolved information.\n- `summarize_file(content, project_files={})`: Returns a combined summary dictionary for a file using the various extractors. If `project_files` are provided, it also includes cross-library analysis.\n\n## Internal Logic\n\n### Critical Algorithms or Workflows\n\n- **AST Walking**: The class uses the `ast.walk` method to traverse the AST and extract relevant metadata from the parsed Python code.\n- **Cross-library Import Analysis**: The `analyze_cross_library_imports` method iterates through the provided `imports` and searches for matching project files to resolve the imports and extract available functions and classes.\n\n### Non-obvious Implementation Decisions\n\n- **Error Handling**: The class uses try-except blocks to handle exceptions that may occur during AST parsing and type hint extraction. This ensures that the analysis process does not fail unexpectedly due to invalid or unexpected syntax.\n- **Graphviz Support**: The `generateGraph` method checks if the `graphviz` module is available before attempting to generate a graph of the AST. If Graphviz is not available, the method prints a message and returns `None`, preventing the analysis process from failing due to a missing dependency.\n\n## Configuration & Environment\n\n### Required Environment Variables\n\n- None\n\n### Configuration Options\n\n- None\n\n### External Services or Resources Used\n\n- Graphviz (optional): Used for generating graphs of the AST. If available, the `generateGraph` method uses Graphviz to create a visual representation of the AST.\n\n## Usage Examples\n\n```python\n# Initialize the DependencyGenerator\ndependency_generator = DependencyGenerator()\n\n# Analyze a Python file\ncontent = \"\"\"\nimport json\nfrom my_module import MyClass\n\ndef my_function(arg1: int, arg2: str) -> str:\n    \"\"\"This is a docstring for my_function.\"\"\"\n    pass\n\nclass MyClass:\n    \"\"\"This is a docstring for MyClass.\"\"\"\n    pass\n\nMY_CONSTANT = \"some value\"\n\"\"\"\n\n# Summarize the file\nsummary = dependency_generator.summarize_file(content)\n\n# Print the summary\nprint(json.dumps(summary, indent=4))\n```\n\n## Edge Cases & Constraints\n\n### Limitations\n\n- The `extract_type_hints` method only extracts simple type hints from top-level functions. It does not support complex type hints or type hints within classes or methods.\n- The `analyze_cross_library_imports` method assumes that project files have a `.py` extension and are located in the same directory as the analyzed file. It may not work correctly for projects with a different file structure or naming convention.\n\n### Assumptions\n\n- The input `content` is a valid Python file that can be parsed using the `ast.parse` method.\n- The `project_files` argument passed to the `summarize_file` method is a dictionary mapping relative file paths to their contents.\n\n### Performance Considerations\n\n- The time complexity of the analysis process is primarily determined by the size and complexity of the input `content`. For large Python files, the analysis may take a significant amount of time.\n- The `analyze_cross_library_imports` method iterates through the provided `imports` and searches for matching project files. This process may be slow for large projects with many files.\n\n## Best Practices & Notes\n\n### Security Considerations\n\n- The `DependencyGenerator` class does not have any security implications. It is a purely analytical tool that does not modify or execute the analyzed code.\n\n### Maintainability Tips\n\n- To improve maintainability, consider using type hints and docstrings consistently throughout your codebase. This will make it easier to extract relevant metadata using the `DependencyGenerator` class.\n- Keep the `DependencyGenerator` class separate from your main application logic to ensure that changes to the analysis process do not affect the behavior of your application.\n\n### Extension Points\n\n- The `DependencyGenerator` class can be extended to support additional metadata extraction or analysis functionality. To do this, you can add new methods to the class or modify existing ones to include additional logic.\n\n## Style Guidelines\n\n- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code.\n- Use clear and concise variable names to improve readability.\n- Add docstrings to public methods and classes to explain their purpose and behavior.\n- Use type hints to improve code readability and maintainability.\n\nThis documentation follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) and the [Microsoft Python Documentation Guidelines](https://docs.microsoft.com/en-us/style-guide/python/).\n\n---"
+}

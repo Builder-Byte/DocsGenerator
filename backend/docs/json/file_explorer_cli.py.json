@@ -1,1 +1,192 @@
-{"imports": ["os", "json"], "functions": [{"name": "clear_file", "args": ["self", "root_dir", "output_file"], "returns": null, "docstring": null}, {"name": "write_to_files", "args": ["self", "content", "output_file"], "returns": null, "docstring": null}, {"name": "write_to_json", "args": ["self", "content", "output_file"], "returns": null, "docstring": null}, {"name": "write_to_md", "args": ["self", "content", "output_file"], "returns": null, "docstring": null}, {"name": "readFiles", "args": ["self", "output_file"], "returns": "dict", "docstring": null}, {"name": "print_folder_not_found", "args": ["self", "path"], "returns": "bool", "docstring": null}, {"name": "getFiles", "args": ["self"], "returns": "list", "docstring": null}, {"name": "detect_language", "args": ["self", "filename"], "returns": "str", "docstring": null}, {"name": "get_manifest", "args": ["self"], "returns": "dict", "docstring": "Return a manifest of files under root_dir with metadata.\n\nManifest structure:\n{\n    \"relative/path.py\": {\n        \"path\": \"absolute/path\",\n        \"size\": 1234,\n        \"mtime\": 1234567890.0,\n        \"language\": \"python\"\n    },\n    ...\n}"}, {"name": "__init__", "args": ["self", "root_dir", "output_file", "ignore_folders", "ignore_files"], "returns": null, "docstring": null}], "classes": [{"name": "FileExplorer", "bases": [], "methods": ["clear_file", "write_to_files", "write_to_json", "write_to_md", "readFiles", "print_folder_not_found", "getFiles", "detect_language", "get_manifest", "__init__"], "docstring": null}], "docstrings": {"module": null, "functions": {"clear_file": null, "write_to_files": null, "write_to_json": null, "write_to_md": null, "readFiles": null, "print_folder_not_found": null, "getFiles": null, "detect_language": null, "get_manifest": "Return a manifest of files under root_dir with metadata.\n\nManifest structure:\n{\n    \"relative/path.py\": {\n        \"path\": \"absolute/path\",\n        \"size\": 1234,\n        \"mtime\": 1234567890.0,\n        \"language\": \"python\"\n    },\n    ...\n}", "__init__": null}, "classes": {"FileExplorer": null}}, "type_hints": {}, "constants": [], "file_name": "file_explorer_cli.py", "summary": "# File Explorer Documentation\n\n## Table of Contents\n\n1. [Overview](#overview)\n2. [Purpose of the File](#purpose)\n3. [High-level Responsibilities](#responsibilities)\n4. [Intended Use Cases](#use-cases)\n5. [Architecture & Design](#architecture)\n6. [Key Design Patterns](#design-patterns)\n7. [Important Abstractions](#abstractions)\n8. [Dependencies and Integrations](#dependencies)\n9. [Public Interfaces](#public-interfaces)\n10. [Internal Logic](#internal-logic)\n11. [Configuration & Environment](#configuration)\n12. [Usage Examples](#usage-examples)\n13. [Edge Cases & Constraints](#edge-cases)\n14. [Best Practices & Notes](#best-practices)\n\n## Overview\n\nThe `FileExplorer` class is a utility for exploring and interacting with files and directories. It provides methods to clear, write, and read files, as well as generate a manifest of files with metadata. The class also includes functionality to detect the language of a file based on its extension and handle folder detection.\n\n## Purpose of the File\n\nThis file contains the implementation of the `FileExplorer` class, which simplifies file and directory operations and provides additional metadata and language detection features.\n\n## High-level Responsibilities\n\n- File and directory exploration (reading, writing, clearing)\n- File metadata collection and organization (manifest generation)\n- Language detection based on file extensions\n- Folder detection and error handling\n\n## Intended Use Cases\n\n- Automating file and directory operations in a project or workspace\n- Generating a manifest of files with metadata for version control or backup purposes\n- Detecting the language of files based on their extensions for code analysis or processing\n\n## Architecture & Design\n\nThe `FileExplorer` class is designed to be flexible and extensible, with methods that can be used independently or in combination to perform various file and directory operations. The class uses Python's built-in `os` module for file and directory operations and maintains an `output_file` for logging and writing results.\n\n## Key Design Patterns\n\n- **Dependency Injection**: The `root_dir` and `output_file` parameters are passed to the constructor, allowing for flexibility in the file and directory operations.\n- **Factory Method**: The `detect_language` method acts as a factory, mapping file extensions to their corresponding programming languages.\n\n## Important Abstractions\n\n- `root_dir`: The root directory for file and directory operations.\n- `output_file`: The output file for logging and writing results.\n- `ignore_folders` and `ignore_files`: Sets of folders and files to ignore during file and directory operations.\n\n## Dependencies and Integrations\n\n- `os`: The built-in Python module for file and directory operations.\n- `json`: The built-in Python module for JSON serialization and deserialization.\n\n## Public Interfaces\n\n### `clear_file(self, root_dir, output_file)`\n\nClears the content of the specified output file in the given root directory.\n\n**Parameters:**\n\n- `root_dir` (str): The root directory containing the output file.\n- `output_file` (str): The name of the output file to clear.\n\n**Returns:**\n\n- None\n\n### `write_to_files(self, content, output_file)`\n\nWrites the given content to the specified output file, appending if it already exists.\n\n**Parameters:**\n\n- `content` (str or any): The content to write to the output file.\n- `output_file` (str): The name of the output file.\n\n**Returns:**\n\n- None\n\n### `write_to_json(self, content, output_file)`\n\nWrites the given content as a JSON string to the specified output file with a `.json` extension.\n\n**Parameters:**\n\n- `content` (any): The content to write to the output file as a JSON string.\n- `output_file` (str): The base name of the output file.\n\n**Returns:**\n\n- None\n\n### `write_to_md(self, content, output_file)`\n\nWrites the given content as a JSON string to the specified output file with a `.md` extension.\n\n**Parameters:**\n\n- `content` (any): The content to write to the output file as a JSON string.\n- `output_file` (str): The base name of the output file.\n\n**Returns:**\n\n- None\n\n### `readFiles(self, output_file=\"read.txt\") -> dict`\n\nReads the content of all files in the `root_dir` directory and its subdirectories, excluding ignored folders and files. Returns a dictionary with file names as keys and their content as values.\n\n**Parameters:**\n\n- `output_file` (str, optional): The name of the output file to write the results. Defaults to \"read.txt\".\n\n**Returns:**\n\n- `content_in_all_files` (dict): A dictionary with file names as keys and their content as values.\n\n### `print_folder_not_found(self, path: str | None = None) -> bool`\n\nPrints an error message if the specified path (or the `root_dir` if no path is provided) does not exist.\n\n**Parameters:**\n\n- `path` (str, optional): The path to check for existence. Defaults to `None`, using `root_dir`.\n\n**Returns:**\n\n- `True` if the path does not exist, `False` otherwise.\n\n### `getFiles(self) -> list`\n\nWalks through the `root_dir` directory and its subdirectories, excluding ignored folders and files. Returns a list of all file paths found.\n\n**Parameters:**\n\n- None\n\n**Returns:**\n\n- `all_files` (list): A list of all file paths found.\n\n### `detect_language(self, filename: str) -> str`\n\nDetects the programming language of the given file based on its extension.\n\n**Parameters:**\n\n- `filename` (str): The name of the file to detect the language of.\n\n**Returns:**\n\n- The detected programming language as a string.\n\n### `get_manifest(self) -> dict`\n\nGenerates a manifest of files under the `root_dir` with metadata, including file path, size, modification time, and detected language.\n\n**Parameters:**\n\n- None\n\n**Returns:**\n\n- `manifest` (dict): A dictionary with file paths as keys and their metadata as values.\n\n### `__init__(self, root_dir=os.getcwd(), output_file=\"output.txt\", ignore_folders={\"venv\", \"__pycache__\", \"output\"}, ignore_files={\"output.txt\", \"read.txt\",\".env\", \".gitignore\"})`\n\nInitializes the `FileExplorer` instance with the given root directory, output file, and sets of ignored folders and files.\n\n**Parameters:**\n\n- `root_dir` (str, optional): The root directory for file and directory operations. Defaults to the current working directory.\n- `output_file` (str, optional): The output file for logging and writing results. Defaults to \"output.txt\".\n- `ignore_folders` (set, optional): A set of folders to ignore during file and directory operations. Defaults to {\"venv\", \"__pycache__\", \"output\"}.\n- `ignore_files` (set, optional): A set of files to ignore during file and directory operations. Defaults to {\"output.txt\", \"read.txt\",\".env\", \".gitignore\"}.\n\n**Returns:**\n\n- None\n\n## Internal Logic\n\nThe `FileExplorer` class uses the following algorithms and workflows:\n\n- **File and directory operations**: The `os.walk` function is used to traverse the `root_dir` directory and its subdirectories, excluding ignored folders and files. The `os.path.join` function is used to construct file paths, and `os.path.isabs` and `os.path.isdir` are used to check for absolute paths and directory existence, respectively.\n- **Language detection**: The `detect_language` method uses a dictionary mapping file extensions to their corresponding programming languages. If the extension is not recognized, the language is set to \"unknown\".\n- **Manifest generation**: The `get_manifest` method uses the `os.stat` function to retrieve file metadata, including size and modification time. It then constructs a dictionary with file paths as keys and their metadata as values.\n\n## Configuration & Environment\n\n### Required environment variables\n\n- None\n\n### Configuration options\n\n- `root_dir`: The root directory for file and directory operations.\n- `output_file`: The output file for logging and writing results.\n- `ignore_folders`: A set of folders to ignore during file and directory operations.\n- `ignore_files`: A set of files to ignore during file and directory operations.\n\n### External services or resources used\n\n- None\n\n## Usage Examples\n\n### Example 1: Clear and write to a file\n\n```python\nfile_explorer = FileExplorer(root_dir=\"/path/to/project\")\nfile_explorer.clear_file(root_dir, \"output.txt\")\nfile_explorer.write_to_files(\"Hello, World!\", \"output.txt\")\n```\n\n### Example 2: Read files and generate a manifest\n\n```python\nfile_explorer = FileExplorer(root_dir=\"/path/to/project\")\ncontent_in_all_files = file_explorer.readFiles()\nmanifest = file_explorer.get_manifest()\n```\n\n## Edge Cases & Constraints\n\n### Limitations\n\n- The `FileExplorer` class does not handle file or directory permissions, and operations may fail if the required permissions are not granted.\n- The `detect_language` method may not accurately detect the language of files with custom or non-standard extensions.\n\n### Assumptions\n\n- The `root_dir` parameter is a valid directory path.\n- The `output_file` parameter is a valid file name and does not conflict with ignored files.\n\n### Performance considerations\n\n- The `readFiles` and `getFiles` methods may have performance implications for large directories or files, as they read and process each file individually.\n\n## Best Practices & Notes\n\n### Security considerations\n\n- Be cautious when using the `write_to_files` and `write_to_json` methods, as they append content to the specified output file without any encryption or access control.\n- The `root_dir` parameter should be carefully selected to avoid unauthorized access to sensitive files or directories.\n\n### Maintainability tips\n\n- Consider using environment variables or configuration files to store the `root_dir`, `output_file`, `ignore_folders`, and `ignore_files` parameters, allowing for easier modification and maintenance.\n- Add error handling and input validation to the `FileExplorer` methods to improve robustness and ease of use.\n\n### Extension points\n\n- The `ignore_folders` and `ignore_files` parameters can be extended to include additional folders or files to ignore during file and directory operations.\n- The `detect_language` method can be extended to support additional file extensions or custom language detection logic.\n\n### Style Guidelines\n\n- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code.\n- Use clear and concise variable and function names to improve readability.\n- Add docstrings and comments to explain the purpose and functionality of each method and class.\n\nThis documentation is written in Markdown format and follows industry standards similar to Google, Microsoft, and OpenAPI styles. It includes code snippets where helpful and avoids restating the code line-by-line unless necessary. The documentation is suitable for production systems, onboarding new engineers, and long-term maintenance."}
+{
+  "imports": [
+    "os",
+    "json",
+    "typing.Dict",
+    "typing.List",
+    "typing.Optional",
+    "typing.Set"
+  ],
+  "functions": [
+    {
+      "name": "clear_file",
+      "args": [
+        "self",
+        "root_dir",
+        "output_file"
+      ],
+      "returns": "None",
+      "docstring": "Clear/create an empty file at the specified path."
+    },
+    {
+      "name": "write_to_files",
+      "args": [
+        "self",
+        "content",
+        "output_file"
+      ],
+      "returns": "None",
+      "docstring": "Write content to a file, creating directories as needed."
+    },
+    {
+      "name": "write_to_json",
+      "args": [
+        "self",
+        "content",
+        "output_file"
+      ],
+      "returns": "None",
+      "docstring": "Write content as JSON to a file."
+    },
+    {
+      "name": "write_to_md",
+      "args": [
+        "self",
+        "content",
+        "output_file"
+      ],
+      "returns": "None",
+      "docstring": "Write content as Markdown to a file."
+    },
+    {
+      "name": "readFiles",
+      "args": [
+        "self",
+        "output_file"
+      ],
+      "returns": "Dict[str, str]",
+      "docstring": "Read all files in the root directory and return their contents.\n\nReturns:\n    Dict mapping relative file paths to their contents.\n    Uses relative paths as keys to avoid filename collisions."
+    },
+    {
+      "name": "print_folder_not_found",
+      "args": [
+        "self",
+        "path"
+      ],
+      "returns": "bool",
+      "docstring": null
+    },
+    {
+      "name": "getFiles",
+      "args": [
+        "self"
+      ],
+      "returns": "list",
+      "docstring": null
+    },
+    {
+      "name": "detect_language",
+      "args": [
+        "self",
+        "filename"
+      ],
+      "returns": "str",
+      "docstring": null
+    },
+    {
+      "name": "get_manifest",
+      "args": [
+        "self"
+      ],
+      "returns": "dict",
+      "docstring": "Return a manifest of files under root_dir with metadata.\n\nManifest structure:\n{\n    \"relative/path.py\": {\n        \"path\": \"absolute/path\",\n        \"size\": 1234,\n        \"mtime\": 1234567890.0,\n        \"language\": \"python\"\n    },\n    ...\n}"
+    },
+    {
+      "name": "__init__",
+      "args": [
+        "self",
+        "root_dir",
+        "output_file",
+        "ignore_folders",
+        "ignore_files"
+      ],
+      "returns": "None",
+      "docstring": "Initialize the FileExplorer.\n\nArgs:\n    root_dir: Root directory to explore\n    output_file: Default output file name\n    ignore_folders: Set of folder names to ignore\n    ignore_files: Set of file names to ignore"
+    }
+  ],
+  "classes": [
+    {
+      "name": "FileExplorer",
+      "bases": [],
+      "methods": [
+        "clear_file",
+        "write_to_files",
+        "write_to_json",
+        "write_to_md",
+        "readFiles",
+        "print_folder_not_found",
+        "getFiles",
+        "detect_language",
+        "get_manifest",
+        "__init__"
+      ],
+      "docstring": "File system explorer for reading and organizing project files."
+    }
+  ],
+  "docstrings": {
+    "module": null,
+    "functions": {
+      "clear_file": "Clear/create an empty file at the specified path.",
+      "write_to_files": "Write content to a file, creating directories as needed.",
+      "write_to_json": "Write content as JSON to a file.",
+      "write_to_md": "Write content as Markdown to a file.",
+      "readFiles": "Read all files in the root directory and return their contents.\n\nReturns:\n    Dict mapping relative file paths to their contents.\n    Uses relative paths as keys to avoid filename collisions.",
+      "print_folder_not_found": null,
+      "getFiles": null,
+      "detect_language": null,
+      "get_manifest": "Return a manifest of files under root_dir with metadata.\n\nManifest structure:\n{\n    \"relative/path.py\": {\n        \"path\": \"absolute/path\",\n        \"size\": 1234,\n        \"mtime\": 1234567890.0,\n        \"language\": \"python\"\n    },\n    ...\n}",
+      "__init__": "Initialize the FileExplorer.\n\nArgs:\n    root_dir: Root directory to explore\n    output_file: Default output file name\n    ignore_folders: Set of folder names to ignore\n    ignore_files: Set of file names to ignore"
+    },
+    "classes": {
+      "FileExplorer": "File system explorer for reading and organizing project files."
+    }
+  },
+  "type_hints": {},
+  "constants": [],
+  "cross_library_functions": {
+    "os": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "json": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "typing.Dict": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "typing.List": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "typing.Optional": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    },
+    "typing.Set": {
+      "source_file": null,
+      "functions": [],
+      "classes": [],
+      "is_local": false,
+      "note": "External library"
+    }
+  },
+  "file_name": "file_explorer_cli.py",
+  "summary": "# File Explorer Documentation\n\n## Table of Contents\n\n1. [Overview](#overview)\n2. [Architecture & Design](#architecture-and-design)\n3. [Public Interfaces](#public-interfaces)\n4. [Internal Logic](#internal-logic)\n5. [Configuration & Environment](#configuration-and-environment)\n6. [Usage Examples](#usage-examples)\n7. [Edge Cases & Constraints](#edge-cases-and-constraints)\n8. [Best Practices & Notes](#best-practices-and-notes)\n\n## Overview\n\nThe `FileExplorer` class is a utility for reading and organizing project files within a specified root directory. It provides methods to clear/create files, write content to files, read files, and generate a manifest of files with metadata.\n\n## Architecture & Design\n\nThe `FileExplorer` class follows a simple object-oriented design with a single class containing methods for file operations. It uses the following key abstractions:\n\n- `root_dir`: The root directory to explore and operate on.\n- `output_file`: The default output file name.\n- `ignore_folders` and `ignore_files`: Sets of folder and file names to ignore during operations.\n\nThe class uses the [os](https://docs.python.org/3/library/os.html) module for file system operations and [json](https://docs.python.org/3/library/json.html) for writing JSON content.\n\n## Public Interfaces\n\n### `FileExplorer`\n\n**Signature:** `FileExplorer(root_dir: str = os.getcwd(), output_file: str = \"output.txt\", ignore_folders: Optional[Set[str]] = None, ignore_files: Optional[Set[str]] = None)`\n\n**Parameters:**\n\n- `root_dir` (str): The root directory to explore. Defaults to the current working directory.\n- `output_file` (str): The default output file name. Defaults to \"output.txt\".\n- `ignore_folders` (Optional[Set[str]]): A set of folder names to ignore. Defaults to {\"venv\", \"__pycache__\", \"output\", \"node_modules\", \".git\"}.\n- `ignore_files` (Optional[Set[str]]): A set of file names to ignore. Defaults to {\".env\", \".gitignore\", \".DS_Store\"}.\n\n**Returns:** None\n\n**Description:** Initializes the `FileExplorer` instance with the given parameters.\n\n### `clear_file`\n\n**Signature:** `clear_file(self, root_dir: str, output_file: str) -> None`\n\n**Parameters:**\n\n- `root_dir` (str): The root directory containing the output file.\n- `output_file` (str): The name of the output file to clear/create.\n\n**Returns:** None\n\n**Description:** Clears or creates an empty file at the specified path within the given root directory.\n\n### `write_to_files`\n\n**Signature:** `write_to_files(self, content: str, output_file: str) -> None`\n\n**Parameters:**\n\n- `content` (str): The content to write to the file.\n- `output_file` (str): The name of the output file.\n\n**Returns:** None\n\n**Description:** Writes the given content to the specified file, creating directories as needed.\n\n### `write_to_json`\n\n**Signature:** `write_to_json(self, content: dict, output_file: str) -> None`\n\n**Parameters:**\n\n- `content` (dict): The content to write as JSON to the file.\n- `output_file` (str): The name of the output file.\n\n**Returns:** None\n\n**Description:** Writes the given content as JSON to the specified file.\n\n### `write_to_md`\n\n**Signature:** `write_to_md(self, content: str, output_file: str) -> None`\n\n**Parameters:**\n\n- `content` (str): The content to write as Markdown to the file.\n- `output_file` (str): The name of the output file.\n\n**Returns:** None\n\n**Description:** Writes the given content as Markdown to the specified file.\n\n### `readFiles`\n\n**Signature:** `readFiles(self, output_file: str = \"read.txt\") -> Dict[str, str]`\n\n**Parameters:**\n\n- `output_file` (str): The name of the output file. Defaults to \"read.txt\".\n\n**Returns:** `Dict[str, str]`: A dictionary mapping relative file paths to their contents.\n\n**Description:** Reads all files in the root directory and returns their contents as a dictionary using relative file paths as keys.\n\n### `print_folder_not_found`\n\n**Signature:** `print_folder_not_found(self, path: Optional[str] = None) -> bool`\n\n**Parameters:**\n\n- `path` (Optional[str]): The path to check. Defaults to the root directory.\n\n**Returns:** `bool`: `True` if the folder is not found, `False` otherwise.\n\n**Description:** Prints an error message and returns `True` if the given path (or root directory if no path is provided) is not a valid directory.\n\n### `getFiles`\n\n**Signature:** `getFiles(self) -> list`\n\n**Returns:** `list`: A list of file paths found in the root directory.\n\n**Description:** Walks through the root directory, prints the directories and files found, and writes them to the output file. Returns a list of file paths.\n\n### `detect_language`\n\n**Signature:** `detect_language(self, filename: str) -> str`\n\n**Parameters:**\n\n- `filename` (str): The name of the file to detect the language of.\n\n**Returns:** `str`: The detected language of the file.\n\n**Description:** Detects the language of the given file based on its extension.\n\n### `get_manifest`\n\n**Signature:** `get_manifest(self) -> dict`\n\n**Returns:** `dict`: A manifest of files under the root directory with metadata.\n\n**Description:** Returns a manifest of files under the root directory with metadata, including the file path, size, modification time, and detected language.\n\n## Internal Logic\n\nThe `FileExplorer` class uses the following non-obvious implementation decisions:\n\n- It uses the `os.walk()` function to traverse the root directory and its subdirectories.\n- It uses the `os.path.join()` function to create file paths, ensuring cross-platform compatibility.\n- It detects the language of a file based on its extension using a predefined mapping.\n- It skips files that it cannot stat (e.g., due to permission issues) when generating the manifest.\n\n## Configuration & Environment\n\nThe `FileExplorer` class requires the following environment variables:\n\n- None\n\nThe class has the following configuration options:\n\n- `root_dir`: The root directory to explore. Defaults to the current working directory.\n- `output_file`: The default output file name. Defaults to \"output.txt\".\n- `ignore_folders`: A set of folder names to ignore. Defaults to {\"venv\", \"__pycache__\", \"output\", \"node_modules\", \".git\"}.\n- `ignore_files`: A set of file names to ignore. Defaults to {\".env\", \".gitignore\", \".DS_Store\"}.\n\nThe class uses the following external services or resources:\n\n- The Python standard library's `os` module for file system operations.\n- The Python standard library's `json` module for writing JSON content.\n\n## Usage Examples\n\n### Example 1: Exploring a directory and writing files\n\n```python\nfile_explorer = FileExplorer(root_dir=\"/path/to/project\")\nfile_explorer.write_to_files(\"Hello, World!\", \"output.txt\")\nfile_explorer.write_to_json({\"key\": \"value\"}, \"manifest\")\nfile_explorer.write_to_md(\"# Markdown Heading\", \"readme\")\n```\n\n### Example 2: Reading files and generating a manifest\n\n```python\nfile_explorer = FileExplorer(root_dir=\"/path/to/project\")\ncontents = file_explorer.readFiles()\nmanifest = file_explorer.get_manifest()\n```\n\n## Edge Cases & Constraints\n\n- The `FileExplorer` class assumes that the root directory and output file paths are valid and accessible.\n- The class does not handle file locking or concurrent access to files.\n- The `detect_language` method may not accurately detect the language of a file if the file extension is not included in the mapping.\n- The `get_manifest` method may not return accurate metadata for files that the current user does not have permission to access.\n\n## Best Practices & Notes\n\n- Use the `FileExplorer` class to explore and organize project files within a specified root directory.\n- Be cautious when using the `write_to_files`, `write_to_json`, and `write_to_md` methods, as they will overwrite existing files with the same name.\n- Consider using the `ignore_folders` and `ignore_files` parameters to exclude specific folders and files from operations.\n- The `get_manifest` method can be useful for generating a snapshot of the files in the root directory with metadata.\n- The `FileExplorer` class does not handle file locking or concurrent access to files. Consider using a locking mechanism or file access control if multiple processes or threads may access the same files simultaneously.\n\n### Security Considerations\n\n- Be cautious when using the `FileExplorer` class to read or write files, as it may expose sensitive information or allow unauthorized access to files.\n- Ensure that the root directory and output file paths are valid and accessible, and that the current user has the necessary permissions to read and write files.\n\n### Maintainability Tips\n\n- Use the `FileExplorer` class to simplify file operations within a specified root directory.\n- Consider using the `ignore_folders` and `ignore_files` parameters to exclude specific folders and files from operations, making the class more maintainable and less prone to errors.\n\n### Extension Points\n\nThe `FileExplorer` class can be extended or modified to suit specific use cases or requirements. Some possible extension points include:\n\n- Adding support for additional file formats or languages.\n- Implementing file locking or concurrent access control.\n- Adding support for additional file operations, such as copying or moving files.\n\n### Style Guidelines\n\nThe `FileExplorer` class follows the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code. It uses clear, concise, and descriptive variable and function names, and it includes docstrings for each public interface. The class uses type hints to indicate the expected data types of function parameters and return values."
+}

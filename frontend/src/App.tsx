@@ -1,18 +1,53 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 
-const API_BASE_URL = 'http://127.0.0.1:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+
+interface ProgressInfo {
+  current: number
+  total: number
+  current_file: string
+  percentage: number
+}
+
+interface ProcessingStatus {
+  status: 'uploading' | 'queued' | 'processing' | 'completed' | 'failed'
+  filename: string
+  session_id: string
+  download_name?: string
+  error?: string
+  progress?: ProgressInfo
+}
+
+interface UploadResult {
+  success: boolean
+  message: string
+  downloadName?: string
+  sessionId?: string
+}
+
+// Track multiple active sessions
+interface ActiveSession {
+  session_id: string
+  filename: string
+  status: ProcessingStatus
+}
+
+// Track completed downloads
+interface CompletedDownload {
+  session_id: string
+  filename: string
+  download_name: string
+}
 
 function App() {
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadResult, setUploadResult] = useState<{
-    success: boolean
-    message: string
-    downloadName?: string
-  } | null>(null)
+  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([])
+  const [completedDownloads, setCompletedDownloads] = useState<CompletedDownload[]>([])
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pollingIntervalRef = useRef<number | null>(null)
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -52,14 +87,116 @@ function App() {
     }
   }
 
+  // Poll for all active session statuses
+  const pollAllSessions = useCallback(async () => {
+    const updatedSessions: ActiveSession[] = []
+    const completedSessions: ActiveSession[] = []
+    const failedSessions: ActiveSession[] = []
+    
+    for (const session of activeSessions) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/status/${session.session_id}`)
+        if (response.ok) {
+          const status: ProcessingStatus = await response.json()
+          
+          if (status.status === 'completed' || status.status === 'failed') {
+            completedSessions.push({ ...session, status })
+          } else {
+            updatedSessions.push({ ...session, status })
+          }
+        } else if (response.status === 404) {
+          // Session not found on server (server may have restarted)
+          // Mark as failed and remove from active sessions
+          failedSessions.push({
+            ...session,
+            status: {
+              ...session.status,
+              status: 'failed',
+              error: 'Session expired. Server may have restarted. Please re-upload.'
+            }
+          })
+        } else {
+          // Keep in active for other errors
+          updatedSessions.push(session)
+        }
+      } catch (error) {
+        console.error(`Failed to poll session ${session.session_id}:`, error)
+        updatedSessions.push(session)
+      }
+    }
+    
+    setActiveSessions(updatedSessions)
+    
+    // Handle completed sessions - add to completed downloads list
+    const newCompletedDownloads: CompletedDownload[] = []
+    for (const completed of completedSessions) {
+      if (completed.status.status === 'completed' && completed.status.download_name) {
+        newCompletedDownloads.push({
+          session_id: completed.session_id,
+          filename: completed.filename,
+          download_name: completed.status.download_name
+        })
+      } else if (completed.status.status === 'failed') {
+        setUploadResult({
+          success: false,
+          message: completed.status.error || `Processing failed for "${completed.filename}"`
+        })
+      }
+    }
+    
+    // Add new completed downloads to the list
+    if (newCompletedDownloads.length > 0) {
+      setCompletedDownloads(prev => [...prev, ...newCompletedDownloads])
+    }
+    
+    // Handle failed/expired sessions
+    for (const failed of failedSessions) {
+      setUploadResult({
+        success: false,
+        message: failed.status.error || `Session expired for "${failed.filename}"`
+      })
+    }
+    
+    // Stop polling if no more active sessions
+    if (updatedSessions.length === 0 && pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+  }, [activeSessions])
+
+  // Start/stop polling based on active sessions
+  useEffect(() => {
+    if (activeSessions.length > 0 && !pollingIntervalRef.current) {
+      pollingIntervalRef.current = window.setInterval(pollAllSessions, 2000)
+    } else if (activeSessions.length === 0 && pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [activeSessions.length, pollAllSessions])
+
   const handleUpload = async () => {
     if (!file) return
 
-    setIsUploading(true)
-    setUploadResult(null)
+    // Capture file reference before clearing
+    const fileToUpload = file
+    const uploadedFilename = fileToUpload.name
+    
+    // Clear file immediately so user can select another
+    setFile(null)
+    setUploadResult({
+      success: true,
+      message: `Uploading "${uploadedFilename}"...`
+    })
 
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', fileToUpload)
 
     try {
       const response = await fetch(`${API_BASE_URL}/upload`, {
@@ -69,13 +206,32 @@ function App() {
 
       if (response.ok) {
         const data = await response.json()
-        const downloadName = file.name.replace('.zip', '')
-        setUploadResult({
-          success: true,
-          message: data.message,
-          downloadName
-        })
-        setFile(null)
+        
+        // If status is not completed, add to active sessions for polling
+        if (data.status !== 'completed') {
+          const newSession: ActiveSession = {
+            session_id: data.session_id,
+            filename: uploadedFilename,
+            status: {
+              status: data.status,
+              filename: uploadedFilename,
+              session_id: data.session_id
+            }
+          }
+          setActiveSessions(prev => [...prev, newSession])
+          setUploadResult({
+            success: true,
+            message: `"${uploadedFilename}" queued for processing. You can upload more files.`,
+            sessionId: data.session_id
+          })
+        } else {
+          setUploadResult({
+            success: true,
+            message: data.message,
+            downloadName: data.download_name,
+            sessionId: data.session_id
+          })
+        }
       } else {
         const error = await response.json()
         setUploadResult({
@@ -88,8 +244,6 @@ function App() {
         success: false,
         message: 'Failed to connect to server'
       })
-    } finally {
-      setIsUploading(false)
     }
   }
 
@@ -167,7 +321,6 @@ function App() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-sm"
-                disabled={isUploading}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -218,58 +371,113 @@ function App() {
           <div className="mt-6 flex justify-center">
             <button
               onClick={handleUpload}
-              disabled={isUploading}
-              className={`px-8 py-3 rounded-lg font-semibold text-white transition-all ${
-                isUploading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl'
-              }`}
+              className="px-8 py-3 rounded-lg font-semibold text-white transition-all bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl"
             >
-              {isUploading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                'Generate Documentation'
-              )}
+              Generate Documentation
             </button>
           </div>
         )}
 
-        {/* Result Message */}
-        {uploadResult && (
-          <div className={`mt-6 p-4 rounded-lg ${
-            uploadResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-          }`}>
+        {/* Active Sessions - Multiple Processing Jobs */}
+        {activeSessions.length > 0 && (
+          <div className="mt-6 space-y-3">
+            <h3 className="text-lg font-semibold text-gray-700">Processing Queue ({activeSessions.length})</h3>
+            {activeSessions.map((session) => (
+              <div key={session.session_id} className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <svg className="animate-spin w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-700 font-medium truncate">{session.filename}</span>
+                      <span className="text-blue-600 text-sm capitalize ml-2">{session.status.status}</span>
+                    </div>
+                    {session.status.progress && (
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between text-xs text-blue-600 mb-1">
+                          <span className="truncate max-w-xs">{session.status.progress.current_file}</span>
+                          <span>{session.status.progress.current}/{session.status.progress.total} files ({session.status.progress.percentage}%)</span>
+                        </div>
+                        <div className="w-full bg-blue-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${session.status.progress.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Completed Downloads */}
+        {completedDownloads.length > 0 && (
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-700">
+                Completed ({completedDownloads.length})
+              </h3>
+              <button
+                onClick={() => setCompletedDownloads([])}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Clear all
+              </button>
+            </div>
+            {completedDownloads.map((download) => (
+              <div key={download.session_id} className="p-4 rounded-lg bg-green-50 border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-green-700 font-medium">{download.filename}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDownload(download.download_name)}
+                    className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {uploadResult && !uploadResult.success && (
+          <div className="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
             <div className="flex items-center gap-3">
-              {uploadResult.success ? (
-                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-              <span className={uploadResult.success ? 'text-green-700' : 'text-red-700'}>
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-red-700">
                 {uploadResult.message}
               </span>
             </div>
-            {uploadResult.success && uploadResult.downloadName && (
-              <button
-                onClick={() => handleDownload(uploadResult.downloadName!)}
-                className="mt-4 flex items-center gap-2 bg-blue-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download Documentation
-              </button>
-            )}
+          </div>
+        )}
+
+        {/* Upload Status Message (non-error) */}
+        {uploadResult && uploadResult.success && !uploadResult.downloadName && (
+          <div className="mt-6 p-4 rounded-lg bg-green-50 border border-green-200">
+            <div className="flex items-center gap-3">
+              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-green-700">
+                {uploadResult.message}
+              </span>
+            </div>
           </div>
         )}
 
